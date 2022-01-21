@@ -1,0 +1,120 @@
+#VRML V2.0 utf8
+# -------------------------------- #
+# ---------------------------------------
+PROTO TitleScreenP [
+]
+{ 
+	DEF TitleScreen Transform {
+		children [
+			Viewpoint {
+				position 0 0 3
+			}
+		   Transform {
+			  translation 0 0 -2
+			  children [
+				 Shape {
+					appearance Appearance {
+					   texture ImageTexture {
+						  url "Dilbert_tex.gif"
+					   } 
+					}
+					geometry 
+					Box {
+					size 5 4 1}
+				 }
+				]
+		   }
+		 ]
+	}
+}
+
+# ---------------------------------------
+PROTO GRP [
+		   exposedField MFNode Children []
+]
+{
+   Transform {
+	  children IS Children 
+   }
+}
+# ---------------------------------------
+
+PROTO URL_LOAD [
+		field MFString source "sphere.wrl"
+		eventOut SFInt32 ready 
+		
+	]
+{
+   DEF Root GRP {
+	  Children [
+		 TitleScreenP {}
+		]
+   }
+   DEF SC Script {
+	 directOutput TRUE 
+	  eventOut SFInt32 ready IS ready
+	  eventIn MFNode node_in 
+	  field MFString fetchURL IS source
+	  field SFNode GeomRoot  USE Root
+	  field SFNode Self USE SC
+
+	  url "vrmlscript:
+	function initialize(){
+//	Browser.setDescription('START');
+	Browser.createVrmlFromURL(fetchURL,Self,'node_in');
+}
+
+function node_in(newChildren){
+//	GeomRoot.aChildren = newChildren ;
+	Browser.replaceWorld(newChildren);
+	ready = 1;
+	
+}
+"
+   }
+}
+
+# -------------------------------- #
+
+DEF TOP_LEVEL Group {
+   children [
+	
+NavigationInfo { 
+	type "EXAMINE"
+	headlight FALSE
+ } 
+WorldInfo { 
+title "Dilbert Loader"
+info ["
+Copyright 1997 Protozoa Inc.
+ALL RIGHTS RESERVED
+
+Created using Protozoa's ALIVE!
+
+For more information, please contact:
+Protozoa Inc.
+2727 Mariposa
+San Francisco, CA, 94110
+info@protozoa.com
+PzPersonnel:
+Mike Morasky (Director)
+Terry Franguiadakis (Technical Lead)
+Jane White (Exec. Producer)
+Sally Syberg (Producer)
+Tom  Laskawy (Line Producer)
+Mike Morasky (Dilbert and Boss Performance Animation)
+Tracey Roberts, Ken Whitaker (3D Modeling)
+Sally Syberg (Dogbert Performance Animation)
+Dan X Hanna, Kelly Kleider, Mike Morasky, Emre Yilmaz, Terry Franguiadakis (Scene Setup, Animation)
+Steve Rein (Sound FX)
+Brad DeGraf (Protozoa President )
+"]
+ } 
+	  DEF UL URL_LOAD { 
+		
+		source "s04.wrl" 
+		}
+	  ]
+}
+
+
