@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <!-- SGI_COMMENT COSMOCREATE -->
+    <!-- SGI_COMMENT VERSION NUMBER="1.0.2" -->
+    <TITLE>Mars Launching Pad</TITLE>
+
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+    
+ total_net = 0;                                  	// total random elements
+total_ie = 0;                                  		// total random elements
+today_date = new Date();                        	// Today's date
+time_now = today_date.getTime();                	// random number
+
+netscape_array('doormat1.html');
+netscape_array('doormat2.html');
+netscape_array('doormat3.html');
+netscape_array('doormat4.html');
+netscape_array('doormat5.html');
+netscape_array('doormat1.html');
+netscape_array('doormat2.html');
+netscape_array('doormat3.html');
+netscape_array('doormat4.html');
+netscape_array('doormat5.html');
+
+// image/link Object Array
+
+function netscape_array (description) {
+        total_net++;
+        sa [total_net] = description;
+}
+
+
+// random number from 1 to total number of array elements
+
+function randnet() {
+RN = parseInt(((time_now - (parseInt(time_now/1000,10) * 1000))/10)/100*total_net + 1,10);
+        return RN;
+}
+
+// CREATE THE image/link OBJECT ARRAY
+
+function sa () {}
+ 
+ 
+function jump () {  
+      	location.href = (sa[randnet()]);
+}
+   
+// -->
+</SCRIPT>
+    
+    
+    
+</HEAD>
+<BODY VLINK="#ff9637" LINK="#ff9637" BGCOLOR="#000000" TEXT="#ffffff"
+ LEFTMARGIN="0" TOPMARGIN="0">
+<P>
+</P>
+<CENTER>
+<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="0">
+    <TR>
+        <TD WIDTH="200"><IMG SRC="images/clear.gif" WIDTH="20"
+             HEIGHT="3">
+	
+	<IMG SRC="images/ms.gif"></TD>
+        <TD WIDTH="340" ALIGN="RIGHT"><IMG SRC="images/glad.gif"></TD>
+    </TR>
+</TABLE>
+<TABLE BORDER="0">
+    <TR>
+        <TD WIDTH="200" VALIGN="TOP"><IMG SRC="images/rocket.jpeg"></TD>
+        <TD WIDTH="200" VALIGN="TOP"><P>
+            <BR><BR>
+             <B><FONT SIZE="3" FACE="Helvetica">W</FONT></B><FONT
+             SIZE="2" FACE="Helvetica">elcome to the Mars Experience 
+            brought to you by <B>Cosmo Software.</B> </FONT></P>
+            <P>
+            <FONT SIZE="2" FACE="Helvetica">Our engineers have been 
+            doing some final tests on your spacecraft and have discovered that it's 
+            missing <B>Cosmo Player</B>, the new booster rocket they 
+            have worked so hard on. </FONT></P>
+            <FONT SIZE="2" FACE="Helvetica">We don't want you to get 
+            lost in space so please press the Cosmo button to 
+             <A
+HREF="http://cosmo.sgi.com/cgi-bin/download.cgi"><B>download Cosmo 
+            Player</B></A> now. Otherwise, hurry up! 
+
+	<P><A HREF="javascript:jump()"><b>The countdown is beginning....</b></A>
+	</FONT><BR><BR>
+	
+             <CENTER>
+	<BR>
+	<A HREF="http://cosmo.sgi.com/cgi-bin/download.cgi"><IMG 
+	SRC="images/dlcosmo.gif" BORDER="0" TARGET="_NEW"><BR>
+	<FONT SIZE="2" FACE="Helvetica, Arial">Fuel Up Here!<BR>
+	<FONT SIZE="1" FACE="Helvetica, Arial">Download <BR>Cosmo Player</A>
+	</CENTER></TD>
+        <TD WIDTH="10"></TD>
+        <TD><IMG SRC="images/fcontent.gif"></TD>
+    </TR>
+</TABLE></CENTER>
+
+
+<BR><BR>
+<CENTER><HR WIDTH="400">
+<FONT SIZE="1" FACE="Helvetica, Arial">
+    <A HREF="http://www.sgi.com/Misc/sgi_info.html" TARGET="_TOP">Copyright &copy;
+ 			1997 Silicon Graphics, Inc.</A>
+    All Rights Reserved.
+    <A HREF="http://www.sgi.com/Misc/external.list.html" TARGET="_TOP">Trademark
+    Information</A>
+ </FONT></CENTER>
+
+
+</BODY>
+</HTML>

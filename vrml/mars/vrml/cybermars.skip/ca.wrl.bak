@@ -1,0 +1,1806 @@
+#VRML V2.0 utf8 CosmoWorlds V1.0
+
+PROTO SND_RES [
+	    exposedField SFTime start 0
+	    exposedField SFTime stop 1
+	    field        SFString audioSource "[]"
+	    field        SFString midiSource "[]"
+	    exposedField SFBool loop TRUE
+	  ]
+{
+  DEF SoundNode Sound {
+    source	DEF SoundSource_0 AudioClip {
+      url	""
+      loop IS loop
+      startTime IS start
+      stopTime IS stop
+    }
+
+    minFront	2000
+    maxFront	2000000
+    minBack	2000
+    maxBack	2000000
+  }
+  DEF audioScript_1 Script {
+    eventOut    MFString    audiourl
+    field    SFString    audioSource IS audioSource
+    field    SFString    midiSource IS midiSource
+    url	"vrmlscript:
+	    function initialize()
+	    {
+		if ((Browser.getName() == \"Cosmo Player\") &&
+		    (Browser.getVersion() == \"Version 1.1\")) {
+		    audiourl = new MFString(audioSource);
+		} 
+		else {
+		    audiourl = new MFString(midiSource);
+		}
+	    }
+	"
+  }
+  ROUTE audioScript_1.audiourl TO SoundSource_0.set_url
+}
+Group {
+  children	[
+    Transform {
+      children	[
+	  DEF lightScript Script {
+	    eventOut    SFBool headlights
+	    url	"vrmlscript:
+		    function initialize()
+		    {
+			if ((Browser.getName() == \"Cosmo Player\") &&
+			    (Browser.getVersion() == \"Version 1.1\")) {
+			    headlights = FALSE;
+			} 
+		    }
+		"
+	  }
+	DEF ringScript Script {
+	  eventOut	  MFInt32	  indexes
+	  eventOut	  MFVec3f	  coords
+	  field	  MFInt32	  makeIndex	[  ]
+	  field	  MFVec3f	  makeCoords	[  ]
+	  url	"vrmlscript:
+	    function circle(rad, count) {
+		indexes = new MFInt32();
+		coords = new MFVec3f();
+		for (i = 0; i < count; i++) {
+		    coords[i] = new SFVec3f(rad * Math.sin(i * 3.14159 * 2 / count),
+					0,
+					rad * Math.cos(i * 3.14159 * 2 / count));
+		    indexes[i] = i;
+		}
+		indexes[count] = 0;
+		indexes[count+1] = -1;
+	    }
+
+	    function initialize() {
+		circle(1,120);
+	    }
+	"
+	}
+	DEF pathScript Script {
+	  eventOut	  MFInt32	  indexes
+	  eventOut	  MFVec3f	  coords
+	  eventOut	  MFFloat	  keys
+	  eventIn	  SFTime	  play
+	  field	  SFInt32	  starttag	1
+	  field	  SFInt32	  endtag	1
+	  url	"vrmlscript:
+	    function path(count, part, startrad, endrad, startx, endx, starty, endy) {
+		indexes = new MFInt32();
+		keys = new MFFloat();
+		coords = new MFVec3f();
+		k = 0;
+		skip = 0;
+		last = part+starttag+endtag=1;
+		for (i = 0; i <= last; i++) {
+		    if (i < starttag) {
+			r = startrad;
+			x = startx;
+			y = starty;
+		    }
+		    else if (i > part+starttag) { 
+			r = endrad;
+			x = endx;
+			y = endy;
+		    }
+		    else  {
+			r = startrad + ((endrad-startrad) * (i-starttag) / part);
+			x = startx + ((endx-startx) * (i-starttag) / part);
+			y = starty + ((endy-starty) * (i-starttag) / part);
+			skip += 1;
+		    }
+		    coords[i] = new SFVec3f(x + (r * Math.sin(i * 6.28318 / count)),
+					y,
+					r * Math.cos(i * 6.28318 / count));
+		    keys[i] = i / last;
+		    indexes[k] = i;
+		    k += 1;
+		    if (skip == 2) {
+			skip = 0;
+			indexes[k] = -1;
+			k += 1;
+		    }
+		}
+		if ((skip > 0) || (endtag > 0)) indexes[k] = -1;
+	    }
+
+	    function initialize() {
+		path(120, 60, 930, 1420, 16, 132, 0, -6);
+	    }
+	"
+	}
+	DEF vpScript Script {
+	  eventOut	  SFString	  dbgOut1
+	  eventOut	  SFTime	  flyTime
+	  eventOut	  SFTime	  triggerTime
+	  eventOut	  SFTime	  releaseTime
+	  eventOut	  SFTime	  orbitStart
+	  eventOut	  SFFloat	  orbitFract
+	  eventOut	  SFFloat	  flyFract
+	  eventOut	  SFTime	  orbitStop
+	  eventOut	  SFBool	  orbitEnable
+	  eventOut	  SFTime	  marzorbitStart
+	  eventOut	  SFTime	  marzorbitStop
+	  eventOut	  SFBool	  marzorbitEnable
+	  eventOut	  SFTime	  ssStart
+	  eventOut	  SFTime	  merStart
+	  eventOut	  SFTime	  venStart
+	  eventOut	  SFTime	  earStart
+	  eventOut	  SFTime	  pfStart
+	  eventOut	  SFTime	  marStart
+	  eventOut	  SFTime	  ssStop
+	  eventOut	  SFTime	  merStop
+	  eventOut	  SFTime	  venStop
+	  eventOut	  SFTime	  earStop
+	  eventOut	  SFTime	  pfStop
+	  eventOut	  SFTime	  marStop
+	  eventOut	  SFBool	  setMarBind
+	  eventIn	  SFBool	  triggerActive
+	  eventIn	  SFBool	  releaseActive
+	  eventIn	  SFBool	  pathActive
+	  eventIn	  SFBool	  ssBind
+	  eventIn	  SFBool	  merBind
+	  eventIn	  SFBool	  venBind
+	  eventIn	  SFBool	  earBind
+	  eventIn	  SFBool	  pfBind
+	  eventIn	  SFBool	  marBind
+	  field	  SFInt32	  current	0
+	  url	"vrmlscript:
+	function fly(value, time)
+	{
+		if (value) {
+		    orbitStart = time;
+		    orbitEnable = TRUE;
+		} else {
+		    orbitStop = time;
+		    orbitEnable = FALSE;
+		}
+	}
+	function orbit(value, time)
+	{
+		if (value) {
+		    orbitStart = time;
+		    orbitEnable = TRUE;
+		    marzorbitStart = time;
+		    marzorbitEnable = TRUE;
+		} else {
+		    orbitStop = time;
+		    orbitEnable = FALSE;
+		    marzorbitStop = time;
+		    marzorbitEnable = FALSE;
+		    orbitFract = 0;
+		    flyFract = 0;
+		}
+	}
+	function start(value, time)
+	{
+	    // dbgOut1 = new String('start current = ' + current + ' value = ' + value + ' time = ' + time);
+	    if (value != current) {	    
+		if (value != 1) {
+		    if (current == 1)  ssStop = time;
+		} else  {
+		    orbit(TRUE, time);
+		    ssStart = time+0.3;
+		}
+		if (value != 2) {
+		    if (current == 2)  merStop = time;
+		} else {
+		    orbit(TRUE, time);
+		    merStart = time+0.3;
+		}
+		if (value != 3) {
+		    if (current == 3)  venStop = time;
+		} else {
+		    orbit(FALSE, time);
+		    venStart = time+0.3;
+		}
+		if (value != 4) {
+		    if (current == 4)  earStop = time;
+		} else {
+		    orbit(FALSE, time);
+		    earStart = time + 0.3;
+		}
+		if (value != 5) {
+		    if (current == 5)  pfStop = time;
+		} else {
+		    orbit(FALSE, time);
+		    pfStart = time + 0.3;
+		    triggerTime = time;
+			// flyTime = time;
+		}
+		if (value != 6) {
+		    if (current == 6)  marStop = time;
+		} else {
+		    if (current != 5) orbit(FALSE, time);
+		    marStart = time + 1;
+		}
+		current = value;
+curOut = current;
+	    }
+	}
+	function ssBind(value,time) {
+	    if (value) start(1,time);
+	}
+	function merBind(value,time) {
+	    if (value) start(2,time);
+	}
+	function venBind(value,time) {
+	    if (value) start(3,time);
+	}
+	function earBind(value,time) {
+	    if (value) start(4,time);
+	}
+	function pfBind(value,time) {
+	    if (value) start(5,time);
+	}
+	function marBind(value,time) {
+	    if (value) start(6,time);
+	}
+	function triggerActive(value,time) {
+	    if (! value) {
+		fly(TRUE, time);
+	    }
+	    else {
+		flyTime = time + 0.2;
+	    }
+	}
+	function pathActive(value,time) {
+	    if (! value) {
+		fly(FALSE,time);
+		releaseTime = time;
+	    }
+	}
+	function releaseActive(value,time) {
+	    if (! value) {
+		if (current == 5) setMarBind = TRUE;
+	    }
+	}
+      "
+	}
+#	DEF d1 CoRouteDebugger { }
+#	DEF d2 CoRouteDebugger { }
+#	DEF d3 CoRouteDebugger { }
+#	DEF ds1 CoRouteDebugger { }
+	Group {
+	  children	[
+	    Transform {
+	      children	[
+		DEF nav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "NONE" ]
+		}
+		DEF farNav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "NONE" ]
+		  visibilityLimit	100000
+		}
+		DEF nearNav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "NONE" ]
+		  visibilityLimit	1000
+		}
+		DEF flyNav NavigationInfo {
+		  headlight	TRUE
+		  type	[ "ANY",
+			    "NONE" ]
+		  visibilityLimit	5000
+		}
+		Group {
+		  children	[
+		    Collision {
+		      children	[
+			DEF EntryCameras Group {
+			  children	[
+			    DEF innerSolarSystem Viewpoint {
+			      position	2168.32 733.198 447.715
+			      orientation	-0.210972 0.948951 0.234484  1.44051
+			      fieldOfView	0.785398
+			      description	"Inner solar system"
+			    }
+			  ]
+			}
+			DEF SolarSystem Group {
+			  children	[
+			    PointLight {
+			      on	TRUE
+			      intensity	1
+			      color	1 1 1
+			      location	0 0 0
+			    }
+			    DEF ear Transform {
+			      children	[
+				DEF earrotTime TimeSensor {
+				  cycleInterval	74
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF earrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF earrinit Transform {
+				  children	DEF earrot Transform {
+				    children	[
+				      DEF earth Transform {
+					children	[
+					  DEF EARTH-PERF-LOGIC Script {
+					    eventOut					    SFTime					    startTime
+					    eventOut					    SFTime					    stopTime
+					    eventIn					    SFTime					    vizInTime
+					    eventIn					    SFTime					    vizOutTime
+					    eventIn					    SFTime					    proxInTime
+					    eventIn					    SFTime					    proxOutTime
+					    field					    SFBool					    inRange	FALSE
+					    field					    SFBool					    visible	FALSE
+					    url	"vrmlscript:
+            function vizInTime(time) {
+		visible = TRUE;
+		if (inRange) startTime = time;
+            }
+
+            function proxInTime(time) {
+		inRange = TRUE;
+                if (visible) startTime = time;
+            }
+
+            function vizOutTime(time) {
+                visible = FALSE;
+                stopTime = time;
+            }
+
+            function proxOutTime(time) {
+                inRange = FALSE;
+                stopTime = time;
+            }
+	    
+        "
+					  }
+					  Transform {
+					    children	DEF EARTH-VIZ-SENSOR VisibilitySensor {
+					      center	-0.0543747 0.467968 0.807159
+					      size	232.407 54.7869 223.606
+					    }
+
+					    center	0 0 0
+					  }
+					  Transform {
+					    children	DEF EARTH-PROX-SENSOR ProximitySensor {
+					      center	1.23025 -0.325703 0.695557
+					      size	1655 1655 1655
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF EARTH-ANCHOR Group {
+					    children	DEF EARTH-ROOT Transform {
+					      children	DEF EARTH-XFORM Transform {
+						children	[
+						  DEF EARTH-TIMER TimeSensor {
+						    cycleInterval	24
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF EARTH-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.25, 0.5, 0.75,
+							      1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  1.5707,
+							      0 1 0  3.1415,
+							      0 1 0  4.7122,
+							      0 1 0  6.28002 ]
+						  }
+						  LOD {
+						    center	0 0 0
+						    range	[ 3000, 14000 ]
+						    level	[
+						      Transform {
+							children	Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	Material {
+								  diffuseColor	1 1 1
+								}
+
+								texture	ImageTexture {
+								  url	"earthTexture.jpg"
+								}
+
+							      }
+
+							      geometry	Sphere {
+								radius	1
+							      }
+
+							    }
+
+							    rotation	0 0 1  0
+							    scale	7.93 7.93 7.93
+							  }
+
+							  scale	3 3 3
+							}
+
+							rotation	0 -1 0  0.297604
+						      }
+						      Transform {
+							children	Transform {
+							  children	Group {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	0.0652667 0.215805 0.734694
+								}
+
+							      }
+
+							    geometry	DEF smallSphere IndexedFaceSet {
+							      coord	Coordinate {
+								point	[ 1 0 0,
+									  0.707107 0.707107 0,
+									  0.707107 0 0.707107,
+									  0 0.707107 0.707107,
+									  0 0 1,
+									  0 1 0,
+									  -0.707107 0 0.707107,
+									  -0.707107 0.707107 0,
+									  -1 0 0,
+									  0 -0.707107 0.707107,
+									  0.707107 -0.707107 0,
+									  0 -1 0,
+									  -0.707107 -0.707107 0,
+									  0 0 -1,
+									  0 0.707107 -0.707107,
+									  0.707107 0 -0.707107,
+									  -0.707107 0 -0.707107,
+									  0 -0.707107 -0.707107 ]
+							      }
+
+							      coordIndex	[ 0, 1, 2, -1, 2, 1, 3, -1,
+								        2, 3, 4, -1, 3, 1, 5, -1,
+								        4, 3, 6, -1, 6, 3, 7, -1,
+								        6, 7, 8, -1, 7, 3, 5, -1,
+								        4, 9, 2, -1, 2, 9, 10, -1,
+								        2, 10, 0, -1, 10, 9, 11, -1,
+								        8, 12, 6, -1, 6, 12, 9, -1,
+								        6, 9, 4, -1, 9, 12, 11, -1,
+								        13, 14, 15, -1, 15, 14, 1, -1,
+								        15, 1, 0, -1, 1, 14, 5, -1,
+								        8, 7, 16, -1, 16, 7, 14, -1,
+								        16, 14, 13, -1, 14, 7, 5, -1,
+								        0, 10, 15, -1, 15, 10, 17, -1,
+								        15, 17, 13, -1, 17, 10, 11, -1,
+								        13, 17, 16, -1, 16, 17, 12, -1,
+								        16, 12, 8, -1, 12, 17, 11, -1 ]
+							      creaseAngle	1.67185
+							    }
+							    }
+
+							  }
+
+							  scale	7.93 7.93 7.93
+							}
+
+							scale	3 3 3
+						      }
+						      Group {
+							children	[
+							]
+						      }
+						    ]
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+					  }
+					  Transform {
+					    children	[
+					      DEF moorotTime TimeSensor {
+						cycleInterval	5.46
+						loop	TRUE
+					      }
+					      DEF moorotInterp OrientationInterpolator {
+						key	[ 0, 0.5, 1 ]
+						keyValue	[ 0 0 1  0,
+							  0 1 0  3.14,
+							  0 1 0  6.28002 ]
+					      }
+					      DEF moon Group {
+						children	DEF moorot Transform {
+						    children	DEF MOON-XFORM Transform {
+						      children	[
+							DEF MOON-TIMER TimeSensor {
+							  cycleInterval	59.46
+							  loop	TRUE
+							  startTime	0
+							  stopTime	0
+							}
+							DEF MOON-ENGINE OrientationInterpolator {
+							  key	[ 0, 0.5, 1 ]
+							  keyValue	[ 0 0 1  0,
+								    0 1 0  3.14,
+								    0 1 0  6.28002 ]
+							}
+							DEF moonrot Transform {
+							  children	LOD {
+							    center	0 0 0
+							    range	[ 300, 3000 ]
+							    level	[
+							      Transform {
+								children	Shape {
+								  appearance	Appearance {
+								    material	Material {
+								      diffuseColor	1 1 1
+								    }
+
+								    texture	ImageTexture {
+								      url	"moonTexture.jpg"
+								    }
+
+								  }
+
+								  geometry	Sphere {
+								    radius	1
+								  }
+
+								}
+
+								translation	-93.4947 3.05176e-05 38.0276
+								rotation	1.05409e-07 1 -6.79733e-09  4.31329
+								scale	6.4233 6.4233 6.4233
+								scaleOrientation	0.178782 -0.960486 -0.213316  0.625539
+							      }
+							      Group {
+								children	Transform {
+								  children	Transform {
+								    children	Transform {
+								      children	Transform {
+									children	Group {
+									  children	Group {
+									    children	Group {
+									      children	Group {
+										children	Shape {
+										  appearance	Appearance {
+										    material	Material {
+										      diffuseColor	1 1 1
+										    }
+
+										    texture	ImageTexture {
+										      url	"moonTexture.jpg"
+										    }
+
+										  }
+
+										  geometry	USE smallSphere
+
+										}
+
+									      }
+
+									    }
+
+									  }
+
+									}
+
+									translation	3 0 3
+									scale	0.27 0.27 0.27
+								      }
+
+								      scale	7.93 7.93 7.93
+								    }
+
+								    scale	3 3 3
+								  }
+
+								  rotation	0 1 0  4.31329
+								}
+
+							      }
+							      Group {
+								children	[
+								]
+							      }
+							    ]
+							  }
+
+							}
+						      ]
+						      rotation	0 0 1  0
+						    }
+
+						  rotation	0 0 1  0
+						}
+
+					      }
+					    ]
+					  }
+					]
+					translation	-930 0 0
+					rotation	0 0 -1  0.4099
+				      }
+				      DEF earth_approach Viewpoint {
+					position	-607.082 121.468 -685.956
+					orientation	0.0204052 0.99152 0.128341  2.70914
+					fieldOfView	0.785398
+					description	"earth_approach"
+				      }
+				      DEF earth1 Viewpoint {
+					position	-928.023 39.5233 -172.363
+					orientation	0.0558354 0.983605 0.171476  3.41862
+					fieldOfView	0.59931
+					description	"earth1"
+				      }
+				      DEF earth_depart1 Viewpoint {
+					position	-658.746 6.86378 24.7396
+					orientation	-0.0190186 0.999497 -0.0253915  1.5799
+					fieldOfView	0.59931
+					description	"earth_depart1"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  1.58
+				  scale	1 1 1
+				}
+				DEF earring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.313333
+					emissiveColor	0 0.34 0.16
+				      }
+
+				    }
+
+				    geometry	DEF ringLine IndexedLineSet {
+				      coord	DEF ringCoords Coordinate {}
+
+				      coordIndex	[  ]
+				      colorIndex	[  ]
+				    }
+
+				  }
+
+				  translation	0 0 0
+				  scale	930 1 930
+				}
+			      ]
+			      translation	16 0 0
+			    }
+			    DEF emp Transform {
+			      children	[
+				DEF pathInterp PositionInterpolator {
+				  key	[ 0, 0.01, 0.03, 0.04,
+					    0.06, 0.08, 0.09, 0.11,
+					    0.122, 0.14, 0.16, 0.17,
+					    0.19, 0.20, 0.22, 0.24,
+					    0.25, 0.27, 0.29, 0.30,
+					    0.32, 0.33, 0.35, 0.37,
+					    0.38, 0.40, 0.41, 0.43,
+					    0.45, 0.46, 0.48, 0.5,
+					    0.51, 0.53, 0.54, 0.56,
+					    0.58, 0.59, 0.61, 0.62,
+					    0.64, 0.66, 0.67, 0.69,
+					    0.70, 0.72, 0.74, 0.75,
+					    0.77, 0.79, 0.802, 0.821,
+					    0.83, 0.85, 0.87, 0.88,
+					    0.90, 0.91, 0.93, 0.95,
+					    0.96, 0.98, 1 ]
+				  keyValue	[ 16 0 930,
+					    64.6725 0 928.726,
+					    115.999 -0.1 933.027,
+					    167.906 -0.2 934.682,
+					    220.251 -0.3 933.642,
+					    272.89 -0.4 929.865,
+					    325.671 -0.5 923.318,
+					    378.442 -0.6 913.975,
+					    431.051 -0.7 901.821,
+					    483.339 -0.8 886.848,
+					    535.149 -0.9 869.057,
+					    586.325 -1 848.456,
+					    636.709 -1.1 825.062,
+					    686.141 -1.2 798.906,
+					    734.464 -1.3 770.022,
+					    781.522 -1.4 738.455,
+					    827.159 -1.5 704.26,
+					    871.225 -1.6 667.5,
+					    913.571 -1.7 628.245,
+					    954.048 -1.8 586.577,
+					    992.515 -1.9 542.583,
+					    1028.83 -2 496.365,
+					    1062.87 -2.1 448.022,
+					    1094.5 -2.2 397.67,
+					    1123.59 -2.3 345.431,
+					    1150.03 -2.4 291.431,
+					    1173.72 -2.5 235.807,
+					    1194.54 -2.6 178.702,
+					    1212.4 -2.7 120.262,
+					    1227.21 -2.8 60.6411,
+					    1238.9 -2.9 0.001167,
+					    1247.39 -3 -61.4936,
+					    1252.62 -3.1 -123.673,
+					    1254.53 -3.2 -186.365,
+					    1253.09 -3.3 -249.388,
+					    1248.25 -3.4 -312.565,
+					    1239.99 -3.5 -375.711,
+					    1228.3 -3.6 -438.641,
+					    1213.17 -3.7 -501.165,
+					    1194.61 -3.8 -563.098,
+					    1172.63 -3.9 -624.247,
+					    1147.26 -4 -684.427,
+					    1118.54 -4.1 -743.449,
+					    1086.51 -4.2 -801.123,
+					    1051.23 -4.3 -857.266,
+					    1012.76 -4.4 -911.695,
+					    971.199 -4.5 -964.228,
+					    926.618 -4.6 -1014.69,
+					    879.121 -4.7 -1062.91,
+					    828.815 -4.8 -1108.72,
+					    775.819 -4.9 -1151.96,
+					    720.259 -5 -1192.46,
+					    662.274 -5.1 -1230.09,
+					    602.005 -5.2 -1264.69,
+					    539.608 -5.3 -1296.13,
+					    475.244 -5.4 -1324.28,
+					    409.081 -5.5 -1349.03,
+					    341.297 -5.6 -1370.25,
+					    272.073 -5.7 -1387.86,
+					    201.6 -5.8 -1401.74,
+					    130.071 -5.9 -1411.83,
+					    57.6871 -6 -1418.05,
+					    -16.4269 -6 -1412.22 ]
+				}
+				DEF triggerTimer TimeSensor {
+				  cycleInterval	2.0
+				  startTime	0
+				}
+				DEF releaseTimer TimeSensor {
+				  cycleInterval	2.0
+				  startTime	0
+				}
+				DEF pathTimer TimeSensor {
+				  cycleInterval	40
+				  startTime	0
+				  stopTime	1
+				}
+				DEF empath Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					emissiveColor	0.45 0.34 0.06
+				      }
+
+				    }
+
+				    geometry	DEF pathLine IndexedLineSet {
+				      coord	DEF pathCoords Coordinate {
+					 point [ 
+					    16 0 930, 64.6725 0 928.726, 
+					    115.999 -0.1 933.027, 167.906 -0.2 934.682, 
+					    220.251 -0.3 933.642, 272.89 -0.4 929.865, 
+					    325.671 -0.5 923.318, 378.442 -0.6 913.975, 
+					    431.051 -0.7 901.821, 483.339 -0.8 886.848, 
+					    
+					    535.149 -0.9 869.057, 586.325 -1 848.456, 
+					    636.709 -1.1 825.062, 686.141 -1.2 798.906, 
+					    734.464 -1.3 770.022, 781.522 -1.4 738.455, 
+					    827.159 -1.5 704.26, 871.225 -1.6 667.5, 
+					    913.571 -1.7 628.245, 954.048 -1.8 586.577, 
+					    
+					    992.515 -1.9 542.583, 1028.83 -2 496.365, 
+					    1062.87 -2.1 448.022, 1094.5 -2.2 397.67, 
+					    1123.59 -2.3 345.431, 1150.03 -2.4 291.431, 
+					    1173.72 -2.5 235.807,1194.54 -2.6 178.702, 
+					    1212.4 -2.7 120.262, 1227.21 -2.8 60.6411, 
+					    
+					    1238.9 -2.9 0.001167, 1247.39 -3 -61.4936, 
+					    1252.62 -3.1 -123.673, 1254.53 -3.2 -186.365, 
+					    1253.09 -3.3 -249.388, 1248.25 -3.4 -312.565, 
+					    1239.99 -3.5 -375.711, 1228.3 -3.6 -438.641, 
+					    1213.17 -3.7 -501.165, 1194.61 -3.8 -563.098, 
+					    
+					    1172.63 -3.9 -624.247, 1147.26 -4 -684.427, 
+					    1118.54 -4.1 -743.449, 1086.51 -4.2 -801.123, 
+					    1051.23 -4.3 -857.266, 1012.76 -4.4 -911.695, 
+					    971.199 -4.5 -964.228, 926.618 -4.6 -1014.69, 
+					    879.121 -4.7 -1062.91, 828.815 -4.8 -1108.72, 
+					    
+					    775.819 -4.9 -1151.96, 720.259 -5 -1192.46, 
+					    662.274 -5.1 -1230.09, 602.005 -5.2 -1264.69, 
+					    539.608 -5.3 -1296.13, 475.244 -5.4 -1324.28, 
+					    409.081 -5.5 -1349.03, 341.297 -5.6 -1370.25, 
+					    272.073 -5.7 -1387.86, 201.6 -5.8 -1401.74, 
+					    
+					    130.071 -5.9 -1411.83, 57.6871 -6 -1418.05, 
+					    -16.4269 -6 -1412.22 ]
+					 }
+				         coordIndex  [ 0, 1, 2, -1,  3, 4, -1, 
+					    5, 6, -1,  7, 8, -1,  9, 10, -1, 
+					    11, 12, -1,  13, 14, -1,  15, 16, -1, 
+					    17, 18, -1,  19, 20, -1, 21, 22, -1, 
+					    23, 24, -1,  25, 26, -1,  27, 28, -1, 
+					    29, 30, -1,  31, 32, -1,  33, 34, -1, 
+					    35, 36, -1,  37, 38, -1,  39, 40, -1, 
+					    41, 42, -1,  43, 44, -1,  45, 46, -1, 
+					    47, 48, -1,  49, 50, -1,  51, 52, -1, 
+					    53, 54, -1,  55, 56, -1,  57, 58, -1, 
+					    59, 60, -1,  61, 62, -1 ]
+				      colorIndex	[  ]
+				    }
+
+				  }
+
+				  translation	16 0 0
+				  scale	1 1 1
+				}
+				DEF pfGroup Transform {
+				  children	[
+				    DEF pfrotTimer TimeSensor {
+				      cycleInterval	5
+				      loop	TRUE
+				      startTime	0
+				      stopTime	0
+				    }
+				    DEF pfrotInterp OrientationInterpolator {
+				      key	[ 0, 0.25, 0.5, 0.75,
+					        1 ]
+				      keyValue	[ 0 0 1  0,
+					        0 1 0  1.5707,
+					        0 1 0  3.1415,
+					        0 1 0  4.7122,
+					        0 1 0  6.28002 ]
+				    }
+				    DEF pathFinder Transform {
+				      children	Inline {
+					url	"pathfinder.wrl"
+					bboxCenter	0.287231 -0.27281 -4.5
+					bboxSize	2 0.957425 2
+				      }
+
+				      translation	14.4556 -1.75591 9.76176
+				      rotation	0.812959 0.433061 -0.389302  1.40363
+				    }
+				    Transform {
+				      children	[
+					DEF pathInterpGroup Group {
+					  children	[
+					    DEF pathPosInterp PositionInterpolator {
+					      key	[ 0, 0.24, 0.45, 0.68,
+						        1 ]
+					      keyValue	[ 80  14 10,
+						        50 11 34,
+						        45 15 45,
+						        32 11 33,
+						        26 32.8 39 ]
+					    }
+					    DEF pathOrInterp OrientationInterpolator {
+					      key	[ 0, 0.24, 0.45, 0.68,
+						        1 ]
+					      keyValue	[ -0.14 0.97 0.14  2.12,
+						        -0.26 0.96 -0.06  0.96,
+						        -0.43 0.81 0.38  0.57,
+						        -0.54 0.82 0.148  0.26,
+						        -0.61 0.73 -0.3  1.013 ]
+					    }
+					    DEF pathLightInterp ScalarInterpolator {
+						key [ 0 .2 .7  1 ]
+						keyValue [0 1 1  0]
+					    }
+					  ]
+					}
+					DEF pathView   Viewpoint {
+					  position	80 14 10
+					  orientation	-0.14 0.97 0.14  2.12
+					  fieldOfView	0.785398
+					  description	"PathFinder Cam"
+					}
+				      ]
+				    }
+				    DEF pathLight DirectionalLight {
+				      intensity	0
+				      direction	-0.6 -0.8 0.12
+				    }
+				  ]
+				  translation	16 0 930
+				  rotation	0 0.97 -0.22  0.575
+				}
+			      ]
+			    }
+			    DEF mar Transform {
+			      children	[
+				DEF marrotTime TimeSensor {
+				  cycleInterval	138
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF marrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF marflyInterp OrientationInterpolator {
+				  key	[ 0, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  1.82 ]
+				}
+				DEF marrinit Transform {
+				  children	DEF marrot Transform {
+				    children	[
+				      DEF mars Transform {
+					children	[
+					  Transform {
+					    children	DEF MARS-PROX-SENSOR ProximitySensor {
+					      center	0.179502 0.0470276 -0.0708618
+					      size	559 559 559
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF WSA_root Group {
+					    children	Group {
+					      children	[
+						  DEF MARS-ROOT Transform {
+						    children	DEF MARS-XFORM Transform {
+						      children	[
+							DEF MARS-TIMER TimeSensor {
+							  cycleInterval	24.6
+							  loop	TRUE
+							  startTime	0
+							  stopTime	0
+							}
+							DEF MARS-ENGINE OrientationInterpolator {
+							  key	[ 0, 0.5, 1 ]
+							  keyValue	[ 0 0 1  0,
+								    0 1 0  3.14,
+								    0 1 0  6.28002 ]
+							}
+							LOD {
+							  center	0 0 0
+							  range	[ 1680, 6300 ]
+							  level	[
+							    DEF sphereit Transform {
+							      children	Transform {
+								children	Transform {
+								  children	Shape {
+								    appearance	Appearance {
+								      material	Material {
+									diffuseColor	1 1 1
+								      }
+
+								      texture	ImageTexture {
+									url	"marsTexture.jpg"
+								      }
+
+								    }
+
+								    geometry	Sphere {
+								      radius	1
+								    }
+
+								  }
+
+								  scale	4.22 4.22 4.22
+								}
+
+								scale	3 3 3
+							      }
+
+							      rotation	0 1 0  1.74875
+							    }
+							    Transform {
+							      children	Transform {
+								children	Shape {
+								  appearance	Appearance {
+								    material	DEF _DefMat Material {
+								      diffuseColor	0.54 0.188 0.144
+								    }
+
+								  }
+
+								  geometry	USE smallSphere
+
+								}
+
+								scale	4.22 4.22 4.22
+							      }
+
+							      scale	3 3 3
+							    }
+							    Group {
+							      children	[
+							      ]
+							    }
+							  ]
+							}
+						      ]
+						      rotation	0 0 1  0
+						    }
+
+						  }
+						LOD {
+						  center	0 0 0
+						  range	1600
+						  level	[
+						    Group {
+						      children	[
+							  DEF PHOBOS-XFORM Transform {
+							    children	[
+							      DEF PHOBOS-TIMER TimeSensor {
+								cycleInterval	7.65
+								loop	TRUE
+								startTime	0
+								stopTime	0
+							      }
+							      DEF PHOBOS-ENGINE OrientationInterpolator {
+								key	[ 0, 0.5, 1 ]
+								keyValue	[ 0 0 1  0,
+									  0 1 0  3.14,
+									  0 1 0  6.28002 ]
+							      }
+							      Transform {
+								children	Transform {
+								  children	Transform {
+								    children	Shape {
+								      appearance	Appearance {
+									material	Material {
+									  ambientIntensity	0.2
+									  diffuseColor	0.58 0.66 0.8
+									}
+
+								      }
+
+								      geometry	Sphere {radius 1 }
+
+								    }
+
+								    translation	1.5 0 1.5
+								    scale	0.15 0.15 0.15
+								  }
+
+								  scale	4.22 4.22 4.22
+								}
+
+								scale	3 3 3
+							      }
+							    ]
+							    rotation	0 0 1  0
+							}
+							  DEF DEIMOS-XFORM Transform {
+							    children	[
+							      DEF DEIMOS-TIMER TimeSensor {
+								cycleInterval	30.28
+								loop	TRUE
+								startTime	0
+								stopTime	0
+							      }
+							      DEF DEIMOS-ENGINE OrientationInterpolator {
+								key	[ 0, 0.5, 1 ]
+								keyValue	[ 0 0 1  0,
+									  0 1 0  3.14,
+									  0 1 0  6.28002 ]
+							      }
+							      Transform {
+								children	Transform {
+								  children	Transform {
+								    children	Shape {
+								      appearance	Appearance {
+									material	Material {
+									  diffuseColor	0.627027 0.14036 0
+									}
+
+								      }
+
+								      geometry	Sphere { radius 1 }
+
+								    }
+
+								    translation	3 0 3
+								    scale	0.1 0.1 0.1
+								  }
+
+								  scale	4.22 4.22 4.22
+								}
+
+								scale	3 3 3
+							      }
+							    ]
+							    rotation	0 0 1  0
+							  }
+						      ]
+						    }
+						    Group {
+						      children	[
+						      ]
+						    }
+						  ]
+						}
+					      ]
+					    }
+
+					  }
+					]
+					translation	-1416 0 0
+					rotation	0 0 1  0
+				      }
+				      DEF mars_approach Viewpoint {
+					position	-1397 25.32 -42.27
+					orientation	-0.054 0.965 0.256  2.838
+					fieldOfView	0.785398
+					description	"mars"
+				      }
+				      DEF marsview Viewpoint {
+					position	-1352 53.6 51.3
+					orientation	-0.5 0.81 0.29  1.113
+					fieldOfView	0.959931
+					description	"mars"
+				      }
+				      DEF mars_depart Viewpoint {
+					position	-1499.02 157.332 241.165
+					orientation	-0.631833 -0.714179 -0.301224  0.764911
+					fieldOfView	0.959931
+					description	"mars_depart"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  2.995
+				}
+				DEF marring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.569697
+					emissiveColor	0.34 0 0.05
+				      }
+
+				    }
+
+				    geometry	USE ringLine
+
+				  }
+
+				  translation	0 0 0
+				  rotation	0 0 1  0
+				  scale	1416 1 1416
+				  scaleOrientation	0 0 1  0
+				}
+			      ]
+			      translation	132 0 0
+			      rotation	0 0 1  0.0323008
+			    }			    
+			    DEF sun Transform {
+			      children	Group {
+				children	DEF sun Transform {
+				  children	DEF SUN-ANCHOR Group {
+				    children	[
+				      LOD {
+					center	0 0 0
+					range	[ 900, 30000 ]
+					level	[
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	DEF CORE-MAT Material {
+						  ambientIntensity	0.2
+						  diffuseColor	0.8 0.8 0.8
+						  emissiveColor	1 1 1
+						}
+
+					      }
+
+					      geometry	Sphere {
+						radius	1
+					      }
+
+					    }
+
+					    scale	35.5447 35.5447 35.5447
+					  }
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	USE CORE-MAT
+
+					      }
+
+					      geometry	DEF SUN-IFS-LOW IndexedFaceSet {
+						coord	Coordinate {
+						  point	[ 1 0 0,
+							    0.707107 0.707107 0,
+							    0.707107 0 0.707107,
+							    0 0.707107 0.707107,
+							    0 0 1,
+							    0 1 0,
+							    -0.707107 0 0.707107,
+							    -0.707107 0.707107 0,
+							    -1 0 0,
+							    0 -0.707107 0.707107,
+							    0.707107 -0.707107 0,
+							    0 -1 0,
+							    -0.707107 -0.707107 0,
+							    0 0 -1,
+							    0 0.707107 -0.707107,
+							    0.707107 0 -0.707107,
+							    -0.707107 0 -0.707107,
+							    0 -0.707107 -0.707107 ]
+						}
+
+						coordIndex	[ 0, 1, 2, -1, 2, 1, 3, -1,
+							  2, 3, 4, -1, 3, 1, 5, -1,
+							  4, 3, 6, -1, 6, 3, 7, -1,
+							  6, 7, 8, -1, 7, 3, 5, -1,
+							  4, 9, 2, -1, 2, 9, 10, -1,
+							  2, 10, 0, -1, 10, 9, 11, -1,
+							  8, 12, 6, -1, 6, 12, 9, -1,
+							  6, 9, 4, -1, 9, 12, 11, -1,
+							  13, 14, 15, -1, 15, 14, 1, -1,
+							  15, 1, 0, -1, 1, 14, 5, -1,
+							  8, 7, 16, -1, 16, 7, 14, -1,
+							  16, 14, 13, -1, 14, 7, 5, -1,
+							  0, 10, 15, -1, 15, 10, 17, -1,
+							  15, 17, 13, -1, 17, 10, 11, -1,
+							  13, 17, 16, -1, 16, 17, 12, -1,
+							  16, 12, 8, -1, 12, 17, 11, -1 ]
+						creaseAngle	1.67185
+					      }
+
+					    }
+
+					    scale	35.5447 35.5447 35.5447
+					  }
+					  Group {
+					    children	[
+					    ]
+					  }
+					]
+				      }
+				      LOD {
+					center	0 0 0
+					range	6000
+					level	[
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	DEF CORONA-MAT Material {
+						  ambientIntensity	0
+						  diffuseColor	1 1 1
+						  specularColor	1 1 1
+						  emissiveColor	1 1 0
+						  shininess	0.428571
+						  transparency	0.5
+						}
+
+					      }
+
+					      geometry	Sphere {
+						radius	1
+					      }
+
+					    }
+
+					    scale	81.4 81.4 81.4
+					  }
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	USE CORONA-MAT
+
+					      }
+
+					      geometry	USE SUN-IFS-LOW
+
+					    }
+
+					    scale	81.4 81.4 81.4
+					  }
+					]
+				      }
+				    ]
+				  }
+
+				  translation	0 0 0
+				  rotation	0 0 1  0
+				  scale	1 1 1
+				}
+
+			      }
+
+			    }
+			    DEF merc Transform {
+			      children	[
+				DEF merrotTime TimeSensor {
+				  cycleInterval	11.6
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF merrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF merrinit Transform {
+				  children	DEF merrot Transform {
+				    children	[
+				      DEF mercury Transform {
+					children	[
+					  Transform {
+					    children	DEF MERCURY-PROX-SENSOR ProximitySensor {
+					      center	0.0390549 0.0145721 -0.0338974
+					      size	100 100 100
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF MERCURY-ANCHOR Group {
+					    children	DEF MERCURY-ROOT Transform {
+					      children	DEF MERCURY-XFORM Transform {
+						children	[
+						  DEF MERCURY-TIMER TimeSensor {
+						    cycleInterval	1407.6
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF MERCURY-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.5, 1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  3.14,
+							      0 1 0  6.28002 ]
+						  }
+						  Transform {
+						    children	LOD {
+						      center	0 0 0
+						      range	[ 1000, 4000 ]
+						      level	[
+							DEF sphereit Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	1 1 1
+								}
+
+								texture	ImageTexture {
+								  url	"mercuryTexture.jpg"
+								}
+
+							      }
+
+							      geometry	Sphere {
+								radius	1
+							      }
+
+							    }
+
+							    translation	0 0 0
+							    scale	3.03 3.03 3.03
+							  }
+
+							  rotation	0 1 0  4.26824
+							}
+							Transform {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	DEF _DefMat Material {
+								diffuseColor	0.795918 0.44723 0.180525
+							      }
+
+							    }
+
+							    geometry	USE smallSphere 
+
+							  }
+
+							  translation	0 0 0
+							  scale	3.03 3.03 3.03
+							}
+							Group {
+							  children	[
+							  ]
+							}
+						      ]
+						    }
+
+						    scale	3 3 3
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+					  }
+					]
+					translation	-360 0 0
+				      }
+				      DEF mercury_approach Viewpoint {
+					position	-366.285 45.5422 -159.943
+					orientation	0.0918701 0.985938 0.139592  3.61431
+					fieldOfView	0.785398
+					description	"mercury_approach"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  0.7
+				}
+				DEF merring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					emissiveColor	0.14 0.15 0.3
+				      }
+
+				    }
+
+				    geometry	USE ringLine 
+
+				  }
+				  translation	0 0 0
+				  rotation	0 0 1  0
+				  scale	360 1 360
+				}
+			      ]
+			      translation	-74 0 0
+			      rotation	0 0 1  0.121999
+			    }
+			    DEF ven Transform {
+			      children	[
+				DEF venrotTime TimeSensor {
+				  cycleInterval	49.4
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF venrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF venrinit Transform {
+				  children	DEF venrot Transform {
+				    children	[
+				      DEF venus Transform {
+					children	[
+					  Transform {
+					    children	DEF VENUS-PROX-SENSOR ProximitySensor {
+					      center	0 0 0
+					      size	100 100 100
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF VENUS-ANCHOR Group {
+					    children	DEF VENUS-ROOT Transform {
+					      children	DEF VENUS-XFORM Transform {
+						children	[
+						  DEF VENUS-TIMER TimeSensor {
+						    cycleInterval	5832.2
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF VENUS-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.5, 1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  3.14,
+							      0 1 0  6.28002 ]
+						  }
+						  Transform {
+						    children	LOD {
+						      center	0 0 0
+						      range	[ 3000, 9000 ]
+						      level	[
+							Transform {
+							  children	Transform {
+							    children	Transform {
+							      children	Shape {
+								appearance	Appearance {
+								  material	DEF _DefMat Material {
+								    diffuseColor	1 1 1
+								  }
+
+								  texture	ImageTexture {
+								    url	"venusTexture.jpg"
+								  }
+
+								}
+
+								geometry	Sphere {
+								  radius	1
+								}
+
+							      }
+
+							      scale	7.52 7.52 7.52
+							    }
+
+							    scale	3 3 3
+							  }
+
+							  rotation	0 1 0  0.911335
+							}
+							Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	0.795918 0.505869 0.164673
+								}
+
+							      }
+
+							      geometry	USE smallSphere
+
+							    }
+
+							    scale	7.52 7.52 7.52
+							  }
+
+							  scale	3 3 3
+							}
+							Group {
+							  children	[
+							  ]
+							}
+						      ]
+						    }
+
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+					  }
+					]
+					translation	-672 0 0
+					rotation	0 0 -1  0.0452981
+				      }
+				      DEF venus_approach Viewpoint {
+					position	-498.853 208.288 306.339
+					orientation	-0.744272 0.623438 0.23955  0.719009
+					fieldOfView	0.785398
+					description	"venus_approach"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  2.5
+				}
+				DEF venring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.2
+					emissiveColor	0.4 0.26 0.0093
+				      }
+
+				    }
+
+				    geometry	USE ringLine
+
+				  }
+
+				  rotation	0 0 1  0
+				  scale	672 1 672
+				  scaleOrientation	0 0 1  0
+				}
+			      ]
+			      rotation	0 0 1  0.0590983
+			      scale	1 1 1
+			    }
+			  ]
+			}
+			DEF OutCameras Group {
+			  children	[
+			    DEF bonvoyage2 Viewpoint {
+			      position	-1370.61 662.345 912.442
+			      orientation	-0.41504 -0.881607 -0.224746  1.11086
+			      fieldOfView	0.785398
+			      description	"bonvoyage2"
+			    }
+			  ]
+			}
+		      ]
+		      collide	FALSE
+		    }
+		  ]
+		}
+	      ]
+	    }
+	    DEF Light1 PointLight { }
+	  ]
+	}
+      ]
+    }
+    DEF SUN_SND SND_RES {
+      audioSource	"Sounds/earth13Loop.mpa"
+      midiSource	"Sounds/Sun.mid"
+    }
+    DEF MER_SND SND_RES {
+      audioSource	"Sounds/planet3Loop2.mpa"
+      midiSource	"Sounds/Mercury.mid"
+    }
+    DEF VEN_SND SND_RES {
+      audioSource	"Sounds/atmo10Loop.mpa"
+      midiSource	"Sounds/Venus.mid"
+    }
+    DEF EAR_SND SND_RES {
+      audioSource	"Sounds/man2-26Loop.mpa"
+      midiSource	"Sounds/Earth.mid"
+    }
+    DEF PF_SND SND_RES {
+      audioSource	"Sounds/jupiterRocket.mpa"
+      midiSource	"Sounds/Pathfinder.mid"
+    }
+    DEF MAR_SND SND_RES {
+      audioSource	"Sounds/sci23Loop.mpa"
+      midiSource	"Sounds/Mars_mod.mid"
+    }
+  ]
+}
+ROUTE lightScript.headlights TO nav.headlight
+ROUTE lightScript.headlights TO nearNav.headlight
+ROUTE lightScript.headlights TO farNav.headlight
+ROUTE lightScript.headlights TO flyNav.headlight
+
+ROUTE innerSolarSystem.isBound TO vpScript.ssBind
+ROUTE mercury_approach.isBound TO vpScript.merBind
+ROUTE venus_approach.isBound TO vpScript.venBind
+ROUTE earth_approach.isBound TO vpScript.earBind
+ROUTE earth1.isBound TO vpScript.earBind
+ROUTE earth_depart1.isBound TO vpScript.earBind
+ROUTE pathView.isBound TO vpScript.pfBind
+ROUTE mars_approach.isBound TO vpScript.marBind
+ROUTE marsview.isBound TO vpScript.marBind
+ROUTE mars_depart.isBound TO vpScript.marBind
+
+ROUTE triggerTimer.isActive TO vpScript.triggerActive
+ROUTE releaseTimer.isActive TO vpScript.releaseActive
+ROUTE pathTimer.isActive TO vpScript.pathActive
+ROUTE innerSolarSystem.isBound TO nav.set_bind
+ROUTE pathView.isBound TO flyNav.set_bind
+ROUTE vpScript.setMarBind TO mars_approach.set_bind
+ROUTE vpScript.orbitEnable TO merrotTime.set_enabled
+ROUTE vpScript.orbitStart TO merrotTime.set_startTime
+ROUTE vpScript.orbitStop TO merrotTime.set_stopTime
+ROUTE merrotTime.fraction_changed TO merrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO merrotInterp.set_fraction
+ROUTE MERCURY-PROX-SENSOR.enterTime TO MERCURY-TIMER.set_startTime
+ROUTE MERCURY-PROX-SENSOR.exitTime TO MERCURY-TIMER.set_stopTime
+ROUTE MERCURY-TIMER.fraction_changed TO MERCURY-ENGINE.set_fraction
+ROUTE MERCURY-ENGINE.value_changed TO MERCURY-XFORM.set_rotation
+ROUTE merrotInterp.value_changed TO merrot.set_rotation
+ROUTE ringScript.coords TO ringCoords.set_point
+ROUTE ringScript.indexes TO ringLine.set_coordIndex
+ROUTE vpScript.orbitEnable TO venrotTime.set_enabled
+ROUTE vpScript.orbitStart TO venrotTime.set_startTime
+ROUTE vpScript.orbitStop TO venrotTime.set_stopTime
+ROUTE venrotTime.fraction_changed TO venrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO venrotInterp.set_fraction
+ROUTE VENUS-PROX-SENSOR.enterTime TO VENUS-TIMER.set_startTime
+ROUTE VENUS-PROX-SENSOR.exitTime TO VENUS-TIMER.set_stopTime
+ROUTE VENUS-TIMER.fraction_changed TO VENUS-ENGINE.set_fraction
+ROUTE VENUS-ENGINE.value_changed TO VENUS-XFORM.set_rotation
+ROUTE venrotInterp.value_changed TO venrot.set_rotation
+ROUTE vpScript.orbitEnable TO earrotTime.set_enabled
+ROUTE vpScript.orbitStart TO earrotTime.set_startTime
+ROUTE vpScript.orbitStop TO earrotTime.set_stopTime
+ROUTE earrotTime.fraction_changed TO earrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO earrotInterp.set_fraction
+ROUTE EARTH-VIZ-SENSOR.enterTime TO EARTH-PERF-LOGIC.vizInTime
+ROUTE EARTH-VIZ-SENSOR.exitTime TO EARTH-PERF-LOGIC.vizOutTime
+ROUTE EARTH-PROX-SENSOR.enterTime TO EARTH-PERF-LOGIC.proxInTime
+ROUTE EARTH-PROX-SENSOR.exitTime TO EARTH-PERF-LOGIC.proxOutTime
+ROUTE EARTH-PERF-LOGIC.startTime TO EARTH-TIMER.set_startTime
+ROUTE EARTH-PERF-LOGIC.stopTime TO EARTH-TIMER.set_stopTime
+ROUTE EARTH-TIMER.fraction_changed TO EARTH-ENGINE.set_fraction
+ROUTE EARTH-ENGINE.value_changed TO EARTH-XFORM.set_rotation
+ROUTE moorotTime.fraction_changed TO moorotInterp.set_fraction
+ROUTE EARTH-PERF-LOGIC.startTime TO MOON-TIMER.set_startTime
+ROUTE EARTH-PERF-LOGIC.stopTime TO MOON-TIMER.set_stopTime
+ROUTE MOON-TIMER.fraction_changed TO MOON-ENGINE.set_fraction
+ROUTE MOON-ENGINE.value_changed TO MOON-XFORM.set_rotation
+ROUTE moorotInterp.value_changed TO moorot.set_rotation
+ROUTE earrotInterp.value_changed TO earrot.set_rotation
+ROUTE pathScript.keys TO pathInterp.set_key
+ROUTE pathTimer.fraction_changed TO pathInterp.set_fraction
+ROUTE pathScript.coords TO pathInterp.set_keyValue
+ROUTE vpScript.triggerTime TO triggerTimer.set_startTime
+ROUTE vpScript.releaseTime TO releaseTimer.set_startTime
+ROUTE vpScript.flyTime TO pathTimer.set_startTime
+ROUTE pathScript.coords TO pathCoords.set_point
+ROUTE pathScript.indexes TO pathLine.set_coordIndex
+ROUTE pathTimer.startTime_changed TO pfrotTimer.set_startTime
+ROUTE pathTimer.stopTime_changed TO pfrotTimer.set_stopTime
+ROUTE pathTimer.fraction_changed TO pathPosInterp.set_fraction
+ROUTE pathTimer.fraction_changed TO pathOrInterp.set_fraction
+ROUTE pathTimer.fraction_changed TO pathLightInterp.set_fraction
+ROUTE vpScript.flyFract TO pathPosInterp.set_fraction
+ROUTE vpScript.flyFract TO pathOrInterp.set_fraction
+ROUTE vpScript.flyFract TO pathLightInterp.set_fraction
+ROUTE pathPosInterp.value_changed TO pathView.set_position
+ROUTE pathOrInterp.value_changed TO pathView.set_orientation
+ROUTE pathLightInterp.value_changed TO pathLight.set_intensity
+ROUTE pathInterp.value_changed TO pfGroup.set_translation
+ROUTE vpScript.marzorbitEnable TO marrotTime.set_enabled
+ROUTE vpScript.marzorbitStart TO marrotTime.set_startTime
+ROUTE vpScript.marzorbitStop TO marrotTime.set_stopTime
+ROUTE marrotTime.fraction_changed TO marrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO marrotInterp.set_fraction
+ROUTE pathTimer.fraction_changed TO marflyInterp.set_fraction
+ROUTE MARS-PROX-SENSOR.enterTime TO MARS-TIMER.set_startTime
+ROUTE MARS-PROX-SENSOR.exitTime TO MARS-TIMER.set_stopTime
+ROUTE MARS-TIMER.fraction_changed TO MARS-ENGINE.set_fraction
+ROUTE MARS-ENGINE.value_changed TO MARS-XFORM.set_rotation
+ROUTE MARS-PROX-SENSOR.enterTime TO PHOBOS-TIMER.set_startTime
+ROUTE MARS-PROX-SENSOR.exitTime TO PHOBOS-TIMER.set_stopTime
+ROUTE PHOBOS-TIMER.fraction_changed TO PHOBOS-ENGINE.set_fraction
+ROUTE PHOBOS-ENGINE.value_changed TO PHOBOS-XFORM.set_rotation
+ROUTE MARS-PROX-SENSOR.enterTime TO DEIMOS-TIMER.set_startTime
+ROUTE MARS-PROX-SENSOR.exitTime TO DEIMOS-TIMER.set_stopTime
+ROUTE DEIMOS-TIMER.fraction_changed TO DEIMOS-ENGINE.set_fraction
+ROUTE DEIMOS-ENGINE.value_changed TO DEIMOS-XFORM.set_rotation
+ROUTE marrotInterp.value_changed TO marrot.set_rotation
+ROUTE marflyInterp.value_changed TO marrot.set_rotation
+ROUTE vpScript.ssStart TO SUN_SND.set_start
+ROUTE vpScript.ssStop TO SUN_SND.set_stop
+ROUTE vpScript.merStart TO MER_SND.set_start
+ROUTE vpScript.merStop TO MER_SND.set_stop
+ROUTE vpScript.venStart TO VEN_SND.set_start
+ROUTE vpScript.venStop TO VEN_SND.set_stop
+ROUTE vpScript.earStart TO EAR_SND.set_start
+ROUTE vpScript.earStop TO EAR_SND.set_stop
+ROUTE vpScript.pfStart TO PF_SND.set_start
+ROUTE vpScript.pfStop TO PF_SND.set_stop
+ROUTE vpScript.marStart TO MAR_SND.set_start
+ROUTE vpScript.marStop TO MAR_SND.set_stop

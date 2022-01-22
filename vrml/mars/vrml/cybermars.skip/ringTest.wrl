@@ -1,0 +1,360 @@
+#VRML V2.0 utf8 CosmoWorlds V1.0
+
+
+Group {
+  children	[
+    Transform {
+      children	[
+	  DEF lightScript Script {
+	    eventOut    SFBool headlights
+	    url	"vrmlscript:
+		    function initialize()
+		    {
+			if ((Browser.getName() == \"Cosmo Player\") &&
+			    (Browser.getVersion() == \"Version 1.1\")) {
+			    headlights = FALSE;
+			} 
+		    }
+		"
+	  }
+	DEF ringScript Script {
+	  eventOut	  MFInt32	  indexes
+	  eventOut	  MFVec3f	  coords
+	  field	  MFInt32	  makeIndex	[  ]
+	  field	  MFVec3f	  makeCoords	[  ]
+	  url	"vrmlscript:
+	    function circle(rad, count) {
+		indexes = new MFInt32();
+		coords = new MFVec3f();
+		for (i = 0; i < count; i++) {
+		    coords[i] = new SFVec3f(rad * Math.sin(i * 3.14159 * 2 / count),
+					0,
+					rad * Math.cos(i * 3.14159 * 2 / count));
+		    indexes[i] = i;
+		}
+		indexes[count] = 0;
+		indexes[count+1] = -1;
+	    }
+
+	    function initialize() {
+		circle(1,120);
+	    }
+	"
+	}
+#	DEF d1 CoRouteDebugger { }
+#	DEF d2 CoRouteDebugger { }
+#	DEF d3 CoRouteDebugger { }
+#	DEF ds1 CoRouteDebugger { }
+	Group {
+	  children	[
+	    Transform {
+	      children	[
+		DEF nav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "NONE" ]
+		}
+		Group {
+		  children	[
+		    Collision {
+		      children	[
+			DEF EntryCameras Group {
+			  children	[
+			    DEF innerSolarSystem Viewpoint {
+			      position	2168.32 733.198 447.715
+			      orientation	-0.210972 0.948951 0.234484  1.44051
+			      fieldOfView	0.785398
+			      description	"Inner solar system"
+			    }
+			  ]
+			}
+			DEF SolarSystem Group {
+			  children	[
+			    PointLight {
+			      on	TRUE
+			      intensity	1
+			      color	1 1 1
+			      location	0 0 0
+			    }
+			    DEF ear Transform {
+			      children	[
+				DEF earrotTime TimeSensor {
+				  cycleInterval	74
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF earrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF earrinit Transform {
+				  children	DEF earrot Transform {
+				    children	[
+				      DEF earth Transform {
+					children	[
+					  DEF EARTH-PERF-LOGIC Script {
+					    eventOut					    SFTime					    startTime
+					    eventOut					    SFTime					    stopTime
+					    eventIn					    SFTime					    vizInTime
+					    eventIn					    SFTime					    vizOutTime
+					    eventIn					    SFTime					    proxInTime
+					    eventIn					    SFTime					    proxOutTime
+					    field					    SFBool					    inRange	FALSE
+					    field					    SFBool					    visible	FALSE
+					    url	"vrmlscript:
+            function vizInTime(time) {
+		visible = TRUE;
+		if (inRange) startTime = time;
+            }
+
+            function proxInTime(time) {
+		inRange = TRUE;
+                if (visible) startTime = time;
+            }
+
+            function vizOutTime(time) {
+                visible = FALSE;
+                stopTime = time;
+            }
+
+            function proxOutTime(time) {
+                inRange = FALSE;
+                stopTime = time;
+            }
+	    
+        "
+					  }
+					  Transform {
+					    children	DEF EARTH-VIZ-SENSOR VisibilitySensor {
+					      center	-0.0543747 0.467968 0.807159
+					      size	232.407 54.7869 223.606
+					    }
+
+					    center	0 0 0
+					  }
+					  Transform {
+					    children	DEF EARTH-PROX-SENSOR ProximitySensor {
+					      center	1.23025 -0.325703 0.695557
+					      size	1655 1655 1655
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF EARTH-ANCHOR Group {
+					    children	DEF EARTH-ROOT Transform {
+					      children	DEF EARTH-XFORM Transform {
+						children	[
+						  DEF EARTH-TIMER TimeSensor {
+						    cycleInterval	24
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF EARTH-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.25, 0.5, 0.75,
+							      1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  1.5707,
+							      0 1 0  3.1415,
+							      0 1 0  4.7122,
+							      0 1 0  6.28002 ]
+						  }
+						  LOD {
+						    center	0 0 0
+						    range	[ 3000, 14000 ]
+						    level	[
+						      Transform {
+							children	Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	Material {
+								  diffuseColor	1 1 1
+								}
+
+								texture	ImageTexture {
+								  url	"earthTexture.jpg"
+								}
+
+							      }
+
+							      geometry	Sphere {
+								radius	1
+							      }
+
+							    }
+
+							    rotation	0 0 1  0
+							    scale	7.93 7.93 7.93
+							  }
+
+							  scale	3 3 3
+							}
+
+							rotation	0 -1 0  0.297604
+						      }
+						      Transform {
+							children	Transform {
+							  children	Group {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	0.0652667 0.215805 0.734694
+								}
+
+							      }
+
+							    geometry	DEF smallSphere IndexedFaceSet {
+							      coord	Coordinate {
+								point	[ 1 0 0,
+									  0.707107 0.707107 0,
+									  0.707107 0 0.707107,
+									  0 0.707107 0.707107,
+									  0 0 1,
+									  0 1 0,
+									  -0.707107 0 0.707107,
+									  -0.707107 0.707107 0,
+									  -1 0 0,
+									  0 -0.707107 0.707107,
+									  0.707107 -0.707107 0,
+									  0 -1 0,
+									  -0.707107 -0.707107 0,
+									  0 0 -1,
+									  0 0.707107 -0.707107,
+									  0.707107 0 -0.707107,
+									  -0.707107 0 -0.707107,
+									  0 -0.707107 -0.707107 ]
+							      }
+
+							      coordIndex	[ 0, 1, 2, -1, 2, 1, 3, -1,
+								        2, 3, 4, -1, 3, 1, 5, -1,
+								        4, 3, 6, -1, 6, 3, 7, -1,
+								        6, 7, 8, -1, 7, 3, 5, -1,
+								        4, 9, 2, -1, 2, 9, 10, -1,
+								        2, 10, 0, -1, 10, 9, 11, -1,
+								        8, 12, 6, -1, 6, 12, 9, -1,
+								        6, 9, 4, -1, 9, 12, 11, -1,
+								        13, 14, 15, -1, 15, 14, 1, -1,
+								        15, 1, 0, -1, 1, 14, 5, -1,
+								        8, 7, 16, -1, 16, 7, 14, -1,
+								        16, 14, 13, -1, 14, 7, 5, -1,
+								        0, 10, 15, -1, 15, 10, 17, -1,
+								        15, 17, 13, -1, 17, 10, 11, -1,
+								        13, 17, 16, -1, 16, 17, 12, -1,
+								        16, 12, 8, -1, 12, 17, 11, -1 ]
+							      creaseAngle	1.67185
+							    }
+							    }
+
+							  }
+
+							  scale	7.93 7.93 7.93
+							}
+
+							scale	3 3 3
+						      }
+						      Group {
+							children	[
+							]
+						      }
+						    ]
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+					  }
+					]
+					translation	-930 0 0
+					rotation	0 0 -1  0.4099
+				      }
+				      DEF earth_approach Viewpoint {
+					position	-607.082 121.468 -685.956
+					orientation	0.0204052 0.99152 0.128341  2.70914
+					fieldOfView	0.785398
+					description	"earth_approach"
+				      }
+				      DEF earth1 Viewpoint {
+					position	-928.023 39.5233 -172.363
+					orientation	0.0558354 0.983605 0.171476  3.41862
+					fieldOfView	0.59931
+					description	"earth1"
+				      }
+				      DEF earth_depart1 Viewpoint {
+					position	-658.746 6.86378 24.7396
+					orientation	-0.0190186 0.999497 -0.0253915  1.5799
+					fieldOfView	0.59931
+					description	"earth_depart1"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  1.58
+				  scale	1 1 1
+				}
+				DEF earring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.313333
+					emissiveColor	0 0.34 0.16
+				      }
+
+				    }
+
+				    geometry	DEF ringLine IndexedLineSet {
+				      coord	DEF ringCoords Coordinate {}
+
+				      coordIndex	[  ]
+				      colorIndex	[  ]
+				    }
+
+				  }
+
+				  translation	0 0 0
+				  scale	930 1 930
+				}
+			      ]
+			      translation	16 0 0
+			    }
+			  ]
+			}
+		      ]
+		      collide	FALSE
+		    }
+		  ]
+		}
+	      ]
+	    }
+	    DEF Light1 PointLight { }
+	  ]
+	}
+      ]
+    }
+  ]
+}
+ROUTE lightScript.headlights TO nav.headlight
+
+
+ROUTE innerSolarSystem.isBound TO nav.set_bind
+
+ROUTE ringScript.coords TO ringCoords.set_point
+ROUTE ringScript.indexes TO ringLine.set_coordIndex
+
+ROUTE earrotTime.fraction_changed TO earrotInterp.set_fraction
+ROUTE EARTH-VIZ-SENSOR.enterTime TO EARTH-PERF-LOGIC.vizInTime
+ROUTE EARTH-VIZ-SENSOR.exitTime TO EARTH-PERF-LOGIC.vizOutTime
+ROUTE EARTH-PROX-SENSOR.enterTime TO EARTH-PERF-LOGIC.proxInTime
+ROUTE EARTH-PROX-SENSOR.exitTime TO EARTH-PERF-LOGIC.proxOutTime
+ROUTE EARTH-PERF-LOGIC.startTime TO EARTH-TIMER.set_startTime
+ROUTE EARTH-PERF-LOGIC.stopTime TO EARTH-TIMER.set_stopTime
+ROUTE EARTH-TIMER.fraction_changed TO EARTH-ENGINE.set_fraction
+ROUTE EARTH-ENGINE.value_changed TO EARTH-XFORM.set_rotation
+ROUTE earrotInterp.value_changed TO earrot.set_rotation

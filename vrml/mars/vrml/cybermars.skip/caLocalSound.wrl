@@ -1,0 +1,4684 @@
+#VRML V2.0 utf8 CosmoWorlds V1.0
+
+PROTO SND_RES [
+	    exposedField SFTime start 0
+	    exposedField SFTime stop 1
+	    field        SFString audioSource "[]"
+	    field        SFString midiSource "[]"
+	    exposedField SFBool loop TRUE
+	    exposedField SFFloat minFront   50
+	    exposedField SFFloat minBack    50
+	    exposedField SFFloat maxFront   8000
+	    exposedField SFFloat maxBack    8000
+	  ]
+{
+  DEF SoundNode Sound {
+    source	DEF SoundSource_0 AudioClip {
+      url	""
+      loop IS loop
+      startTime IS start
+      stopTime IS stop
+      description "xdebug"
+    }
+
+    minFront	IS minFront
+    maxFront	IS maxFront
+    minBack	IS minBack
+    maxBack	IS maxBack
+  }
+  DEF audioScript_1 Script {
+    eventOut    MFString    audiourl
+    field    SFString    audioSource IS audioSource
+    field    SFString    midiSource IS midiSource
+    url	"vrmlscript:
+	    function initialize()
+	    {
+		if ((Browser.getName() == \"Cosmo Player\") &&
+		    (Browser.getVersion() == \"Version 1.1\")) {
+		    audiourl = new MFString(audioSource);
+		} 
+		else {
+		    audiourl = new MFString(midiSource);
+		}
+	    }
+	"
+  }
+  ROUTE audioScript_1.audiourl TO SoundSource_0.set_url
+}
+Group {
+  children	[
+    Transform {
+      children	[
+	  DEF lightScript Script {
+	    eventOut    SFBool headlights
+	    url	"vrmlscript:
+		    function initialize()
+		    {
+			if ((Browser.getName() == \"Cosmo Player\") &&
+			    (Browser.getVersion() == \"Version 1.1\")) {
+			    headlights = FALSE;
+			} 
+		    }
+		"
+	  }
+	DEF ringScript Script {
+	  eventOut	  MFInt32	  indexes
+	  eventOut	  MFVec3f	  coords
+	  field	  MFInt32	  makeIndex	[  ]
+	  field	  MFVec3f	  makeCoords	[  ]
+	  url	"vrmlscript:
+	    function circle(rad, count) {
+		indexes = new MFInt32();
+		coords = new MFVec3f();
+		for (i = 0; i < count; i++) {
+		    coords[i] = new SFVec3f(rad * Math.sin(i * 3.14159 * 2 / count),
+					0,
+					rad * Math.cos(i * 3.14159 * 2 / count));
+		    indexes[i] = i;
+		}
+		indexes[count] = 0;
+		indexes[count+1] = -1;
+	    }
+
+	    function initialize() {
+		circle(1,120);
+	    }
+	"
+	}
+	DEF pathScript Script {
+	  eventOut	  MFInt32	  indexes
+	  eventOut	  MFVec3f	  coords
+	  eventOut	  MFFloat	  keys
+	  eventIn	  SFTime	  play
+	  field	  SFInt32	  starttag	1
+	  field	  SFInt32	  endtag	1
+	  url	"vrmlscript:
+	    function path(count, part, startrad, endrad, startx, endx, starty, endy) {
+		indexes = new MFInt32();
+		keys = new MFFloat();
+		coords = new MFVec3f();
+		k = 0;
+		skip = 0;
+		last = part+starttag+endtag=1;
+		for (i = 0; i <= last; i++) {
+		    if (i < starttag) {
+			r = startrad;
+			x = startx;
+			y = starty;
+		    }
+		    else if (i > part+starttag) { 
+			r = endrad;
+			x = endx;
+			y = endy;
+		    }
+		    else  {
+			r = startrad + ((endrad-startrad) * (i-starttag) / part);
+			x = startx + ((endx-startx) * (i-starttag) / part);
+			y = starty + ((endy-starty) * (i-starttag) / part);
+			skip += 1;
+		    }
+		    coords[i] = new SFVec3f(x + (r * Math.sin(i * 6.28318 / count)),
+					y,
+					r * Math.cos(i * 6.28318 / count));
+		    keys[i] = i / last;
+		    indexes[k] = i;
+		    k += 1;
+		    if (skip == 2) {
+			skip = 0;
+			indexes[k] = -1;
+			k += 1;
+		    }
+		}
+		if ((skip > 0) || (endtag > 0)) indexes[k] = -1;
+	    }
+
+	    function initialize() {
+		path(120, 60, 930, 1420, 16, 132, 0, -6);
+	    }
+	"
+	}
+	DEF vpScript Script {
+	  eventOut	  SFString	  dbgOut1
+	  eventOut	  SFTime	  flyTime
+	  eventOut	  SFTime	  triggerTime
+	  eventOut	  SFTime	  releaseTime
+	  eventOut	  SFTime	  orbitStart
+	  eventOut	  SFFloat	  orbitFract
+	  eventOut	  SFFloat	  flyFract
+	  eventOut	  SFTime	  orbitStop
+	  eventOut	  SFBool	  orbitEnable
+	  eventOut	  SFTime	  marzorbitStart
+	  eventOut	  SFTime	  marzorbitStop
+	  eventOut	  SFBool	  marzorbitEnable
+	  eventOut	  SFTime	  ssStart
+	  eventOut	  SFTime	  merStart
+	  eventOut	  SFTime	  venStart
+	  eventOut	  SFTime	  earStart
+	  eventOut	  SFTime	  pfStart
+	  eventOut	  SFTime	  marStart
+	  eventOut	  SFTime	  jupStart
+	  eventOut	  SFTime	  satStart
+	  eventOut	  SFTime	  uraStart
+	  eventOut	  SFTime	  nepStart
+	  eventOut	  SFTime	  pluStart
+	  eventOut	  SFTime	  ssStop
+	  eventOut	  SFTime	  merStop
+	  eventOut	  SFTime	  venStop
+	  eventOut	  SFTime	  earStop
+	  eventOut	  SFTime	  pfStop
+	  eventOut	  SFTime	  marStop
+	  eventOut	  SFTime	  jupStop
+	  eventOut	  SFTime	  satStop
+	  eventOut	  SFTime	  uraStop
+	  eventOut	  SFTime	  nepStop
+	  eventOut	  SFTime	  pluStop
+	  eventOut	  SFBool	  setMarBind
+	  eventIn	  SFBool	  triggerActive
+	  eventIn	  SFBool	  releaseActive
+	  eventIn	  SFBool	  pathActive
+	  eventIn	  SFBool	  ssBind
+	  eventIn	  SFBool	  merBind
+	  eventIn	  SFBool	  venBind
+	  eventIn	  SFBool	  earBind
+	  eventIn	  SFBool	  pfBind
+	  eventIn	  SFBool	  marBind
+	  eventIn	  SFBool	  jupBind
+	  eventIn	  SFBool	  satBind
+	  eventIn	  SFBool	  uraBind
+	  eventIn	  SFBool	  nepBind
+	  eventIn	  SFBool	  pluBind
+	  field	  SFInt32	  current	0
+	  url	"vrmlscript:
+	function fly(value, time)
+	{
+		if (value) {
+		    orbitStart = time;
+		    orbitEnable = TRUE;
+		} else {
+		    orbitStop = time;
+		    orbitEnable = FALSE;
+		}
+	}
+	function orbit(value, time)
+	{
+		if (value) {
+		    orbitStart = time;
+		    orbitEnable = TRUE;
+		    marzorbitStart = time;
+		    marzorbitEnable = TRUE;
+		} else {
+		    orbitStop = time;
+		    orbitEnable = FALSE;
+		    marzorbitStop = time;
+		    marzorbitEnable = FALSE;
+		    orbitFract = 0;
+		    flyFract = 0;
+		}
+	}
+	function start(value, time)
+	{
+	    // dbgOut1 = new String('start current = ' + current + ' value = ' + value + ' time = ' + time);
+	    if (value != current) {	    
+		if (value != 1) {
+		    if (current == 1)  ssStop = time;
+		} else  {
+		    orbit(TRUE, time);
+		    ssStart = time+0.3;
+		}
+		if (value != 2) {
+		    if (current == 2)  merStop = time;
+		} else {
+		    orbit(TRUE, time);
+		    merStart = time+0.3;
+		}
+		if (value != 3) {
+		    if (current == 3)  venStop = time;
+		} else {
+		    orbit(FALSE, time);
+		    venStart = time+0.3;
+		}
+		if (value != 4) {
+		    if (current == 4)  earStop = time;
+		} else {
+		    orbit(FALSE, time);
+		    earStart = time + 0.3;
+		}
+		if (value != 5) {
+		    if (current == 5)  pfStop = time;
+		} else {
+		    orbit(FALSE, time);
+		    pfStart = time + 0.3;
+		    triggerTime = time;
+			// flyTime = time;
+		}
+		if (value != 6) {
+		    if (current == 6)  marStop = time;
+		} else {
+		    if (current != 5) orbit(FALSE, time);
+		    marStart = time + 1;
+		}
+		if (value == 7) {
+		    orbit(FALSE, time);
+		    jupStart = time + 0.3;
+		} else if (current == 7)  {
+		    jupStop = time;
+		}
+		if (value == 8) {
+		    orbit(FALSE, time);
+		    satStart = time + 0.3;
+		} else if (current == 8)  {
+		    satStop = time;
+		}
+		if (value == 9) {
+		    orbit(FALSE, time);
+		    uraStart = time + 0.3;
+		} else if (current == 9)  {
+		    uraStop = time;
+		}
+		if (value == 10) {
+		    orbit(FALSE, time);
+		    nepStart = time+0.3;
+		} else if (current == 10)  {
+		    nepStop = time;
+		}
+		if (value == 11) {
+		    orbit(FALSE, time);
+		    pluStart = time+0.3;
+		} else if (current == 11)  {
+		    pluStop = time;
+		}
+		current = value;
+curOut = current;
+	    }
+	}
+	function ssBind(value,time) {
+	    if (value) start(1,time);
+	}
+	function merBind(value,time) {
+	    if (value) start(2,time);
+	}
+	function venBind(value,time) {
+	    if (value) start(3,time);
+	}
+	function earBind(value,time) {
+	    if (value) start(4,time);
+	}
+	function pfBind(value,time) {
+	    if (value) start(5,time);
+	}
+	function marBind(value,time) {
+	    if (value) start(6,time);
+	}
+	function jupBind(value,time) {
+	    if (value) start(7,time);
+	}
+	function satBind(value,time) {
+	    if (value) start(8,time);
+	}
+	function uraBind(value,time) {
+	    if (value) start(9,time);
+	}
+	function nepBind(value,time) {
+	    if (value) start(10,time);
+	}
+	function pluBind(value,time) {
+	    if (value) start(11,time);
+	}
+	function triggerActive(value,time) {
+	    if (! value) {
+		fly(TRUE, time);
+	    }
+	    else {
+		flyTime = time + 0.2;
+	    }
+	}
+	function pathActive(value,time) {
+	    if (! value) {
+		fly(FALSE,time);
+		releaseTime = time;
+	    }
+	}
+	function releaseActive(value,time) {
+	    if (! value) {
+		if (current == 5) setMarBind = TRUE;
+	    }
+	}
+      "
+	}
+#	DEF d1 CoRouteDebugger { }
+#	DEF d2 CoRouteDebugger { }
+#	DEF d3 CoRouteDebugger { }
+#	DEF ds1 CoRouteDebugger { }
+	Group {
+	  children	[
+	    Transform {
+	      children	[
+		DEF nav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "EXAMINE" ]
+		}
+		DEF farNav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "EXAMINE" ]
+		  visibilityLimit	100000
+		}
+		DEF nearNav NavigationInfo {
+		  headlight	TRUE
+		  speed	500
+		  type	[ "ANY",
+			    "EXAMINE" ]
+		  visibilityLimit	1000
+		}
+		DEF flyNav NavigationInfo {
+		  headlight	TRUE
+		  type	[ "ANY",
+			    "EXAMINE" ]
+		  visibilityLimit	5000
+		}
+		Group {
+		  children	[
+		    Collision {
+		      children	[
+			DEF EntryCameras Group {
+			  children	[
+			    DEF entry Viewpoint {
+			      position	47193.1 26934 28237.9
+			      orientation	-0.386533 0.874049 0.29433  1.15285
+			      fieldOfView	0.785398
+			      description	"entry"
+			    }
+			    DEF innerSolarSystem Viewpoint {
+			      position	2168.32 733.198 447.715
+			      orientation	-0.210972 0.948951 0.234484  1.44051
+			      fieldOfView	0.785398
+			      description	"Inner solar system"
+			    }
+			  ]
+			}
+			DEF SolarSystem Group {
+			  children	[
+			    PointLight {
+			      on	TRUE
+			      intensity	1
+			      color	1 1 1
+			      location	0 0 0
+			    }
+			    DEF sun Transform {
+			      children	Group {
+				children	DEF sun Transform {
+				  children	DEF SUN-ANCHOR Anchor {
+				    children	[
+				      LOD {
+					center	0 0 0
+					range	[ 900, 30000 ]
+					level	[
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	DEF CORE-MAT Material {
+						  ambientIntensity	0.2
+						  diffuseColor	0.8 0.8 0.8
+						  emissiveColor	1 1 1
+						}
+
+					      }
+
+					      geometry	Sphere {
+						radius	1
+					      }
+
+					    }
+
+					    scale	35.5447 35.5447 35.5447
+					  }
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	USE CORE-MAT
+
+					      }
+
+					      geometry	DEF SUN-IFS-LOW IndexedFaceSet {
+						coord	Coordinate {
+						  point	[ 1 0 0,
+							    0.707107 0.707107 0,
+							    0.707107 0 0.707107,
+							    0 0.707107 0.707107,
+							    0 0 1,
+							    0 1 0,
+							    -0.707107 0 0.707107,
+							    -0.707107 0.707107 0,
+							    -1 0 0,
+							    0 -0.707107 0.707107,
+							    0.707107 -0.707107 0,
+							    0 -1 0,
+							    -0.707107 -0.707107 0,
+							    0 0 -1,
+							    0 0.707107 -0.707107,
+							    0.707107 0 -0.707107,
+							    -0.707107 0 -0.707107,
+							    0 -0.707107 -0.707107 ]
+						}
+
+						coordIndex	[ 0, 1, 2, -1, 2, 1, 3, -1,
+							  2, 3, 4, -1, 3, 1, 5, -1,
+							  4, 3, 6, -1, 6, 3, 7, -1,
+							  6, 7, 8, -1, 7, 3, 5, -1,
+							  4, 9, 2, -1, 2, 9, 10, -1,
+							  2, 10, 0, -1, 10, 9, 11, -1,
+							  8, 12, 6, -1, 6, 12, 9, -1,
+							  6, 9, 4, -1, 9, 12, 11, -1,
+							  13, 14, 15, -1, 15, 14, 1, -1,
+							  15, 1, 0, -1, 1, 14, 5, -1,
+							  8, 7, 16, -1, 16, 7, 14, -1,
+							  16, 14, 13, -1, 14, 7, 5, -1,
+							  0, 10, 15, -1, 15, 10, 17, -1,
+							  15, 17, 13, -1, 17, 10, 11, -1,
+							  13, 17, 16, -1, 16, 17, 12, -1,
+							  16, 12, 8, -1, 12, 17, 11, -1 ]
+						creaseAngle	1.67185
+					      }
+
+					    }
+
+					    scale	35.5447 35.5447 35.5447
+					  }
+					  Group {
+					    children	[
+					    ]
+					  }
+					]
+				      }
+				      LOD {
+					center	0 0 0
+					range	6000
+					level	[
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	DEF CORONA-MAT Material {
+						  ambientIntensity	0
+						  diffuseColor	1 1 1
+						  specularColor	1 1 1
+						  emissiveColor	1 1 0
+						  shininess	0.428571
+						  transparency	0.5
+						}
+
+					      }
+
+					      geometry	Sphere {
+						radius	1
+					      }
+
+					    }
+
+					    scale	81.4 81.4 81.4
+					  }
+					  Transform {
+					    children	Shape {
+					      appearance	Appearance {
+						material	USE CORONA-MAT
+
+					      }
+
+					      geometry	USE SUN-IFS-LOW
+
+					    }
+
+					    scale	81.4 81.4 81.4
+					  }
+					]
+				      }
+				    ]
+				    url	"Sun/HTML/index.html"
+				    parameter	"target=secondary"
+				  }
+
+				  translation	0 0 0
+				  rotation	0 0 1  0
+				  scale	1 1 1
+				}
+
+			      }
+
+			    }
+			    DEF SUN_SND SND_RES {
+			      audioSource	"Sounds/earth13Loop.mpa"
+			      midiSource	"Sounds/Sun.mid"
+			      maxFront 100000
+			      maxBack  100000
+			    }
+			    DEF merc Transform {
+			      children	[
+				DEF merrotTime TimeSensor {
+				  cycleInterval	11.6
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF merrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF merrinit Transform {
+				  children	DEF merrot Transform {
+				    children	[
+				      DEF mercury Transform {
+					children	[
+					  Transform {
+					    children	DEF MERCURY-PROX-SENSOR ProximitySensor {
+					      center	0.0390549 0.0145721 -0.0338974
+					      size	100 100 100
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF MERCURY-ANCHOR Anchor {
+					    children	DEF MERCURY-ROOT Transform {
+					      children	DEF MERCURY-XFORM Transform {
+						children	[
+						  DEF MERCURY-TIMER TimeSensor {
+						    cycleInterval	1407.6
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF MERCURY-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.5, 1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  3.14,
+							      0 1 0  6.28002 ]
+						  }
+						  Transform {
+						    children	LOD {
+						      center	0 0 0
+						      range	[ 1000, 4000 ]
+						      level	[
+							DEF sphereit Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	1 1 1
+								}
+
+								texture	ImageTexture {
+								  url	"mercuryTexture.jpg"
+								}
+
+							      }
+
+							      geometry	Sphere {
+								radius	1
+							      }
+
+							    }
+
+							    translation	0 0 0
+							    scale	3.03 3.03 3.03
+							  }
+
+							  rotation	0 1 0  4.26824
+							}
+							Transform {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	DEF _DefMat Material {
+								diffuseColor	0.795918 0.44723 0.180525
+							      }
+
+							    }
+
+							    geometry	DEF smallSphere IndexedFaceSet {
+							      coord	Coordinate {
+								point	[ 1 0 0,
+									  0.707107 0.707107 0,
+									  0.707107 0 0.707107,
+									  0 0.707107 0.707107,
+									  0 0 1,
+									  0 1 0,
+									  -0.707107 0 0.707107,
+									  -0.707107 0.707107 0,
+									  -1 0 0,
+									  0 -0.707107 0.707107,
+									  0.707107 -0.707107 0,
+									  0 -1 0,
+									  -0.707107 -0.707107 0,
+									  0 0 -1,
+									  0 0.707107 -0.707107,
+									  0.707107 0 -0.707107,
+									  -0.707107 0 -0.707107,
+									  0 -0.707107 -0.707107 ]
+							      }
+
+							      coordIndex	[ 0, 1, 2, -1, 2, 1, 3, -1,
+								        2, 3, 4, -1, 3, 1, 5, -1,
+								        4, 3, 6, -1, 6, 3, 7, -1,
+								        6, 7, 8, -1, 7, 3, 5, -1,
+								        4, 9, 2, -1, 2, 9, 10, -1,
+								        2, 10, 0, -1, 10, 9, 11, -1,
+								        8, 12, 6, -1, 6, 12, 9, -1,
+								        6, 9, 4, -1, 9, 12, 11, -1,
+								        13, 14, 15, -1, 15, 14, 1, -1,
+								        15, 1, 0, -1, 1, 14, 5, -1,
+								        8, 7, 16, -1, 16, 7, 14, -1,
+								        16, 14, 13, -1, 14, 7, 5, -1,
+								        0, 10, 15, -1, 15, 10, 17, -1,
+								        15, 17, 13, -1, 17, 10, 11, -1,
+								        13, 17, 16, -1, 16, 17, 12, -1,
+								        16, 12, 8, -1, 12, 17, 11, -1 ]
+							      creaseAngle	1.67185
+							    }
+
+							  }
+
+							  translation	0 0 0
+							  scale	3.03 3.03 3.03
+							}
+							Group {
+							  children	[
+							  ]
+							}
+						      ]
+						    }
+
+						    scale	3 3 3
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+
+					    url	"Mercury/HTML/index.html"
+					    parameter	"target=secondary"
+					  }
+					]
+					translation	-360 0 0
+				      }
+					DEF MER_SND SND_RES {
+					  audioSource	"Sounds/planet3Loop2.mpa"
+					  midiSource	"Sounds/Mercury.mid"
+					}
+				      DEF mercury_approach Viewpoint {
+					position	-366.285 45.5422 -159.943
+					orientation	0.0918701 0.985938 0.139592  3.61431
+					fieldOfView	0.785398
+					description	"mercury_approach"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  0.7
+				}
+				DEF merring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					emissiveColor	0.14 0.15 0.3
+				      }
+
+				    }
+
+				    geometry	DEF ringLine IndexedLineSet {
+				      coord	DEF ringCoords Coordinate {}
+
+				      coordIndex	[  ]
+				      colorIndex	[  ]
+				    }
+
+				  }
+
+				  translation	0 0 0
+				  rotation	0 0 1  0
+				  scale	360 1 360
+				}
+			      ]
+			      translation	-74 0 0
+			      rotation	0 0 1  0.121999
+			    }
+			    DEF ven Transform {
+			      children	[
+				DEF venrotTime TimeSensor {
+				  cycleInterval	49.4
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF venrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF venrinit Transform {
+				  children	DEF venrot Transform {
+				    children	[
+				      DEF venus Transform {
+					children	[
+					  Transform {
+					    children	DEF VENUS-PROX-SENSOR ProximitySensor {
+					      center	0 0 0
+					      size	100 100 100
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF VENUS-ANCHOR Anchor {
+					    children	DEF VENUS-ROOT Transform {
+					      children	DEF VENUS-XFORM Transform {
+						children	[
+						  DEF VENUS-TIMER TimeSensor {
+						    cycleInterval	5832.2
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF VENUS-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.5, 1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  3.14,
+							      0 1 0  6.28002 ]
+						  }
+						  Transform {
+						    children	LOD {
+						      center	0 0 0
+						      range	[ 3000, 9000 ]
+						      level	[
+							Transform {
+							  children	Transform {
+							    children	Transform {
+							      children	Shape {
+								appearance	Appearance {
+								  material	DEF _DefMat Material {
+								    diffuseColor	1 1 1
+								  }
+
+								  texture	ImageTexture {
+								    url	"venusTexture.jpg"
+								  }
+
+								}
+
+								geometry	Sphere {
+								  radius	1
+								}
+
+							      }
+
+							      scale	7.52 7.52 7.52
+							    }
+
+							    scale	3 3 3
+							  }
+
+							  rotation	0 1 0  0.911335
+							}
+							Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	0.795918 0.505869 0.164673
+								}
+
+							      }
+
+							      geometry	USE smallSphere
+
+							    }
+
+							    scale	7.52 7.52 7.52
+							  }
+
+							  scale	3 3 3
+							}
+							Group {
+							  children	[
+							  ]
+							}
+						      ]
+						    }
+
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+
+					    url	"Venus/HTML/index.html"
+					    parameter	"target=secondary"
+					  }
+					]
+					translation	-672 0 0
+					rotation	0 0 -1  0.0452981
+				      }
+					DEF VEN_SND SND_RES {
+					  audioSource	"Sounds/atmo10Loop.mpa"
+					  midiSource	"Sounds/Venus.mid"
+					}
+				      DEF venus_approach Viewpoint {
+					position	-498.853 208.288 306.339
+					orientation	-0.744272 0.623438 0.23955  0.719009
+					fieldOfView	0.785398
+					description	"venus_approach"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  2.5
+				}
+				DEF venring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.2
+					emissiveColor	0.4 0.26 0.0093
+				      }
+
+				    }
+
+				    geometry	USE ringLine
+
+				  }
+
+				  rotation	0 0 1  0
+				  scale	672 1 672
+				  scaleOrientation	0 0 1  0
+				}
+			      ]
+			      rotation	0 0 1  0.0590983
+			      scale	1 1 1
+			    }
+			    DEF ear Transform {
+			      children	[
+				DEF earrotTime TimeSensor {
+				  cycleInterval	74
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF earrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF earrinit Transform {
+				  children	DEF earrot Transform {
+				    children	[
+				      DEF earth Transform {
+					children	[
+					  DEF EARTH-PERF-LOGIC Script {
+					    eventOut					    SFTime					    startTime
+					    eventOut					    SFTime					    stopTime
+					    eventIn					    SFTime					    vizInTime
+					    eventIn					    SFTime					    vizOutTime
+					    eventIn					    SFTime					    proxInTime
+					    eventIn					    SFTime					    proxOutTime
+					    field					    SFBool					    inRange	FALSE
+					    field					    SFBool					    visible	FALSE
+					    url	"vrmlscript:
+            function vizInTime(time) {
+		visible = TRUE;
+		if (inRange) startTime = time;
+            }
+
+            function proxInTime(time) {
+		inRange = TRUE;
+                if (visible) startTime = time;
+            }
+
+            function vizOutTime(time) {
+                visible = FALSE;
+                stopTime = time;
+            }
+
+            function proxOutTime(time) {
+                inRange = FALSE;
+                stopTime = time;
+            }
+	    
+        "
+					  }
+					  Transform {
+					    children	DEF EARTH-VIZ-SENSOR VisibilitySensor {
+					      center	-0.0543747 0.467968 0.807159
+					      size	232.407 54.7869 223.606
+					    }
+
+					    center	0 0 0
+					  }
+					  Transform {
+					    children	DEF EARTH-PROX-SENSOR ProximitySensor {
+					      center	1.23025 -0.325703 0.695557
+					      size	1655 1655 1655
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF EARTH-ANCHOR Anchor {
+					    children	DEF EARTH-ROOT Transform {
+					      children	DEF EARTH-XFORM Transform {
+						children	[
+						  DEF EARTH-TIMER TimeSensor {
+						    cycleInterval	24
+						    loop	TRUE
+						    startTime	0
+						    stopTime	0
+						  }
+						  DEF EARTH-ENGINE OrientationInterpolator {
+						    key	[ 0, 0.25, 0.5, 0.75,
+							      1 ]
+						    keyValue	[ 0 0 1  0,
+							      0 1 0  1.5707,
+							      0 1 0  3.1415,
+							      0 1 0  4.7122,
+							      0 1 0  6.28002 ]
+						  }
+						  LOD {
+						    center	0 0 0
+						    range	[ 3000, 14000 ]
+						    level	[
+						      Transform {
+							children	Transform {
+							  children	Transform {
+							    children	Shape {
+							      appearance	Appearance {
+								material	Material {
+								  diffuseColor	1 1 1
+								}
+
+								texture	ImageTexture {
+								  url	"earthTexture.jpg"
+								}
+
+							      }
+
+							      geometry	Sphere {
+								radius	1
+							      }
+
+							    }
+
+							    rotation	0 0 1  0
+							    scale	7.93 7.93 7.93
+							  }
+
+							  scale	3 3 3
+							}
+
+							rotation	0 -1 0  0.297604
+						      }
+						      Transform {
+							children	Transform {
+							  children	Group {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	0.0652667 0.215805 0.734694
+								}
+
+							      }
+
+							      geometry	USE smallSphere
+
+							    }
+
+							  }
+
+							  scale	7.93 7.93 7.93
+							}
+
+							scale	3 3 3
+						      }
+						      Group {
+							children	[
+							]
+						      }
+						    ]
+						  }
+						]
+						rotation	0 0 1  0
+					      }
+
+					    }
+
+					    url	"Earth/HTML/index.html"
+					    parameter	"target=secondary"
+					  }
+					  Transform {
+					    children	[
+					      DEF moorotTime TimeSensor {
+						cycleInterval	5.46
+						loop	TRUE
+					      }
+					      DEF moorotInterp OrientationInterpolator {
+						key	[ 0, 0.5, 1 ]
+						keyValue	[ 0 0 1  0,
+							  0 1 0  3.14,
+							  0 1 0  6.28002 ]
+					      }
+					      DEF moon Group {
+						children	DEF moorot Transform {
+						  children	DEF MOON-ANCHOR Anchor {
+						    children	DEF MOON-XFORM Transform {
+						      children	[
+							DEF MOON-TIMER TimeSensor {
+							  cycleInterval	59.46
+							  loop	TRUE
+							  startTime	0
+							  stopTime	0
+							}
+							DEF MOON-ENGINE OrientationInterpolator {
+							  key	[ 0, 0.5, 1 ]
+							  keyValue	[ 0 0 1  0,
+								    0 1 0  3.14,
+								    0 1 0  6.28002 ]
+							}
+							DEF moonrot Transform {
+							  children	LOD {
+							    center	0 0 0
+							    range	[ 300, 3000 ]
+							    level	[
+							      Transform {
+								children	Shape {
+								  appearance	Appearance {
+								    material	Material {
+								      diffuseColor	1 1 1
+								    }
+
+								    texture	ImageTexture {
+								      url	"moonTexture.jpg"
+								    }
+
+								  }
+
+								  geometry	Sphere {
+								    radius	1
+								  }
+
+								}
+
+								translation	-93.4947 3.05176e-05 38.0276
+								rotation	1.05409e-07 1 -6.79733e-09  4.31329
+								scale	6.4233 6.4233 6.4233
+								scaleOrientation	0.178782 -0.960486 -0.213316  0.625539
+							      }
+							      Group {
+								children	Transform {
+								  children	Transform {
+								    children	Transform {
+								      children	Transform {
+									children	Group {
+									  children	Group {
+									    children	Group {
+									      children	Group {
+										children	Shape {
+										  appearance	Appearance {
+										    material	Material {
+										      diffuseColor	1 1 1
+										    }
+
+										    texture	ImageTexture {
+										      url	"moonTexture.jpg"
+										    }
+
+										  }
+
+										  geometry	USE smallSphere
+
+										}
+
+									      }
+
+									    }
+
+									  }
+
+									}
+
+									translation	3 0 3
+									scale	0.27 0.27 0.27
+								      }
+
+								      scale	7.93 7.93 7.93
+								    }
+
+								    scale	3 3 3
+								  }
+
+								  rotation	0 1 0  4.31329
+								}
+
+							      }
+							      Group {
+								children	[
+								]
+							      }
+							    ]
+							  }
+
+							}
+						      ]
+						      rotation	0 0 1  0
+						    }
+
+						    url	"Earth/HTML/Moon.html"
+						    parameter	"target=secondary"
+						  }
+
+						  rotation	0 0 1  0
+						}
+
+					      }
+					    ]
+					  }
+					]
+					translation	-930 0 0
+					rotation	0 0 -1  0.4099
+				      }
+					DEF EAR_SND SND_RES {
+					  audioSource	"Sounds/man2-26Loop.mpa"
+					  midiSource	"Sounds/Earth.mid"
+					}
+				      DEF earth_approach Viewpoint {
+					position	-607.082 121.468 -685.956
+					orientation	0.0204052 0.99152 0.128341  2.70914
+					fieldOfView	0.785398
+					description	"earth_approach"
+				      }
+				      DEF earth1 Viewpoint {
+					position	-928.023 39.5233 -172.363
+					orientation	0.0558354 0.983605 0.171476  3.41862
+					fieldOfView	0.59931
+					description	"earth1"
+				      }
+				      DEF earth_depart1 Viewpoint {
+					position	-658.746 6.86378 24.7396
+					orientation	-0.0190186 0.999497 -0.0253915  1.5799
+					fieldOfView	0.59931
+					description	"earth_depart1"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  1.58
+				  scale	1 1 1
+				}
+				DEF earring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.313333
+					emissiveColor	0 0.34 0.16
+				      }
+
+				    }
+
+				    geometry	USE ringLine
+
+				  }
+
+				  translation	0 0 0
+				  scale	930 1 930
+				}
+			      ]
+			      translation	16 0 0
+			    }
+			    DEF emp Transform {
+			      children	[
+				DEF pathInterp PositionInterpolator {
+				  key	[ 0, 0.01, 0.03, 0.04,
+					    0.06, 0.08, 0.09, 0.11,
+					    0.122, 0.14, 0.16, 0.17,
+					    0.19, 0.20, 0.22, 0.24,
+					    0.25, 0.27, 0.29, 0.30,
+					    0.32, 0.33, 0.35, 0.37,
+					    0.38, 0.40, 0.41, 0.43,
+					    0.45, 0.46, 0.48, 0.5,
+					    0.51, 0.53, 0.54, 0.56,
+					    0.58, 0.59, 0.61, 0.62,
+					    0.64, 0.66, 0.67, 0.69,
+					    0.70, 0.72, 0.74, 0.75,
+					    0.77, 0.79, 0.802, 0.821,
+					    0.83, 0.85, 0.87, 0.88,
+					    0.90, 0.91, 0.93, 0.95,
+					    0.96, 0.98, 1 ]
+				  keyValue	[ 16 0 930,
+					    64.6725 0 928.726,
+					    115.999 -0.1 933.027,
+					    167.906 -0.2 934.682,
+					    220.251 -0.3 933.642,
+					    272.89 -0.4 929.865,
+					    325.671 -0.5 923.318,
+					    378.442 -0.6 913.975,
+					    431.051 -0.7 901.821,
+					    483.339 -0.8 886.848,
+					    535.149 -0.9 869.057,
+					    586.325 -1 848.456,
+					    636.709 -1.1 825.062,
+					    686.141 -1.2 798.906,
+					    734.464 -1.3 770.022,
+					    781.522 -1.4 738.455,
+					    827.159 -1.5 704.26,
+					    871.225 -1.6 667.5,
+					    913.571 -1.7 628.245,
+					    954.048 -1.8 586.577,
+					    992.515 -1.9 542.583,
+					    1028.83 -2 496.365,
+					    1062.87 -2.1 448.022,
+					    1094.5 -2.2 397.67,
+					    1123.59 -2.3 345.431,
+					    1150.03 -2.4 291.431,
+					    1173.72 -2.5 235.807,
+					    1194.54 -2.6 178.702,
+					    1212.4 -2.7 120.262,
+					    1227.21 -2.8 60.6411,
+					    1238.9 -2.9 0.001167,
+					    1247.39 -3 -61.4936,
+					    1252.62 -3.1 -123.673,
+					    1254.53 -3.2 -186.365,
+					    1253.09 -3.3 -249.388,
+					    1248.25 -3.4 -312.565,
+					    1239.99 -3.5 -375.711,
+					    1228.3 -3.6 -438.641,
+					    1213.17 -3.7 -501.165,
+					    1194.61 -3.8 -563.098,
+					    1172.63 -3.9 -624.247,
+					    1147.26 -4 -684.427,
+					    1118.54 -4.1 -743.449,
+					    1086.51 -4.2 -801.123,
+					    1051.23 -4.3 -857.266,
+					    1012.76 -4.4 -911.695,
+					    971.199 -4.5 -964.228,
+					    926.618 -4.6 -1014.69,
+					    879.121 -4.7 -1062.91,
+					    828.815 -4.8 -1108.72,
+					    775.819 -4.9 -1151.96,
+					    720.259 -5 -1192.46,
+					    662.274 -5.1 -1230.09,
+					    602.005 -5.2 -1264.69,
+					    539.608 -5.3 -1296.13,
+					    475.244 -5.4 -1324.28,
+					    409.081 -5.5 -1349.03,
+					    341.297 -5.6 -1370.25,
+					    272.073 -5.7 -1387.86,
+					    201.6 -5.8 -1401.74,
+					    130.071 -5.9 -1411.83,
+					    57.6871 -6 -1418.05,
+					    -16.4269 -6 -1412.22 ]
+				}
+				DEF triggerTimer TimeSensor {
+				  cycleInterval	2.0
+				  startTime	0
+				}
+				DEF releaseTimer TimeSensor {
+				  cycleInterval	2.0
+				  startTime	0
+				}
+				DEF pathTimer TimeSensor {
+				  cycleInterval	40
+				  startTime	0
+				  stopTime	1
+				}
+				DEF empath Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					emissiveColor	0.45 0.34 0.06
+				      }
+
+				    }
+
+				    geometry	DEF pathLine IndexedLineSet {
+				      coord	DEF pathCoords Coordinate {
+					 point [ 
+					    16 0 930, 64.6725 0 928.726, 
+					    115.999 -0.1 933.027, 167.906 -0.2 934.682, 
+					    220.251 -0.3 933.642, 272.89 -0.4 929.865, 
+					    325.671 -0.5 923.318, 378.442 -0.6 913.975, 
+					    431.051 -0.7 901.821, 483.339 -0.8 886.848, 
+					    
+					    535.149 -0.9 869.057, 586.325 -1 848.456, 
+					    636.709 -1.1 825.062, 686.141 -1.2 798.906, 
+					    734.464 -1.3 770.022, 781.522 -1.4 738.455, 
+					    827.159 -1.5 704.26, 871.225 -1.6 667.5, 
+					    913.571 -1.7 628.245, 954.048 -1.8 586.577, 
+					    
+					    992.515 -1.9 542.583, 1028.83 -2 496.365, 
+					    1062.87 -2.1 448.022, 1094.5 -2.2 397.67, 
+					    1123.59 -2.3 345.431, 1150.03 -2.4 291.431, 
+					    1173.72 -2.5 235.807,1194.54 -2.6 178.702, 
+					    1212.4 -2.7 120.262, 1227.21 -2.8 60.6411, 
+					    
+					    1238.9 -2.9 0.001167, 1247.39 -3 -61.4936, 
+					    1252.62 -3.1 -123.673, 1254.53 -3.2 -186.365, 
+					    1253.09 -3.3 -249.388, 1248.25 -3.4 -312.565, 
+					    1239.99 -3.5 -375.711, 1228.3 -3.6 -438.641, 
+					    1213.17 -3.7 -501.165, 1194.61 -3.8 -563.098, 
+					    
+					    1172.63 -3.9 -624.247, 1147.26 -4 -684.427, 
+					    1118.54 -4.1 -743.449, 1086.51 -4.2 -801.123, 
+					    1051.23 -4.3 -857.266, 1012.76 -4.4 -911.695, 
+					    971.199 -4.5 -964.228, 926.618 -4.6 -1014.69, 
+					    879.121 -4.7 -1062.91, 828.815 -4.8 -1108.72, 
+					    
+					    775.819 -4.9 -1151.96, 720.259 -5 -1192.46, 
+					    662.274 -5.1 -1230.09, 602.005 -5.2 -1264.69, 
+					    539.608 -5.3 -1296.13, 475.244 -5.4 -1324.28, 
+					    409.081 -5.5 -1349.03, 341.297 -5.6 -1370.25, 
+					    272.073 -5.7 -1387.86, 201.6 -5.8 -1401.74, 
+					    
+					    130.071 -5.9 -1411.83, 57.6871 -6 -1418.05, 
+					    -16.4269 -6 -1412.22 ]
+					 }
+				         coordIndex  [ 0, 1, 2, -1,  3, 4, -1, 
+					    5, 6, -1,  7, 8, -1,  9, 10, -1, 
+					    11, 12, -1,  13, 14, -1,  15, 16, -1, 
+					    17, 18, -1,  19, 20, -1, 21, 22, -1, 
+					    23, 24, -1,  25, 26, -1,  27, 28, -1, 
+					    29, 30, -1,  31, 32, -1,  33, 34, -1, 
+					    35, 36, -1,  37, 38, -1,  39, 40, -1, 
+					    41, 42, -1,  43, 44, -1,  45, 46, -1, 
+					    47, 48, -1,  49, 50, -1,  51, 52, -1, 
+					    53, 54, -1,  55, 56, -1,  57, 58, -1, 
+					    59, 60, -1,  61, 62, -1 ]
+				      colorIndex	[  ]
+				    }
+
+				  }
+
+				  translation	16 0 0
+				  scale	1 1 1
+				}
+				DEF pfGroup Transform {
+				  children	[
+				    DEF pfrotTimer TimeSensor {
+				      cycleInterval	5
+				      loop	TRUE
+				      startTime	0
+				      stopTime	0
+				    }
+				    DEF pfrotInterp OrientationInterpolator {
+				      key	[ 0, 0.25, 0.5, 0.75,
+					        1 ]
+				      keyValue	[ 0 0 1  0,
+					        0 1 0  1.5707,
+					        0 1 0  3.1415,
+					        0 1 0  4.7122,
+					        0 1 0  6.28002 ]
+				    }
+				    DEF pathFinder Transform {
+				      children	Inline {
+					url	"pathfinder.wrl"
+					bboxCenter	0.287231 -0.27281 -4.5
+					bboxSize	2 0.957425 2
+				      }
+
+				      translation	14.4556 -1.75591 9.76176
+				      rotation	0.812959 0.433061 -0.389302  1.40363
+				    }
+				    Transform {
+				      children	[
+					DEF pathInterpGroup Group {
+					  children	[
+					    DEF pathPosInterp PositionInterpolator {
+					      key	[ 0, 0.24, 0.45, 0.68,
+						        1 ]
+					      keyValue	[ 80  14 10,
+						        50 11 34,
+						        45 15 45,
+						        32 11 33,
+						        26 32.8 39 ]
+					    }
+					    DEF pathOrInterp OrientationInterpolator {
+					      key	[ 0, 0.24, 0.45, 0.68,
+						        1 ]
+					      keyValue	[ -0.14 0.97 0.14  2.12,
+						        -0.26 0.96 -0.06  0.96,
+						        -0.43 0.81 0.38  0.57,
+						        -0.54 0.82 0.148  0.26,
+						        -0.61 0.73 -0.3  1.013 ]
+					    }
+					    DEF pathLightInterp ScalarInterpolator {
+						key [ 0 .2 .7  1 ]
+						keyValue [0 1 1  0]
+					    }
+					  ]
+					}
+					DEF PF_SND SND_RES {
+					  audioSource	"Sounds/jupiterRocket.mpa"
+					  midiSource	"Sounds/Pathfinder.mid"
+					}
+					DEF pathView   Viewpoint {
+					  position	80 14 10
+					  orientation	-0.14 0.97 0.14  2.12
+					  fieldOfView	0.785398
+					  description	"PathFinder Cam"
+					}
+				      ]
+				    }
+				    DEF pathLight DirectionalLight {
+				      intensity	0
+				      direction	-0.6 -0.8 0.12
+				    }
+				  ]
+				  translation	16 0 930
+				  rotation	0 0.97 -0.22  0.575
+				}
+			      ]
+			    }
+			    DEF mar Transform {
+			      children	[
+				DEF marrotTime TimeSensor {
+				  cycleInterval	138
+				  enabled	TRUE
+				  loop	TRUE
+				  startTime	0
+				  stopTime	0
+				}
+				DEF marrotInterp OrientationInterpolator {
+				  key	[ 0, 0.5, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  3.14,
+					    0 1 0  6.28002 ]
+				}
+				DEF marflyInterp OrientationInterpolator {
+				  key	[ 0, 1 ]
+				  keyValue	[ 0 0 1  0,
+					    0 1 0  1.82 ]
+				}
+				DEF marrinit Transform {
+				  children	DEF marrot Transform {
+				    children	[
+				      DEF mars Transform {
+					children	[
+					  Transform {
+					    children	DEF MARS-PROX-SENSOR ProximitySensor {
+					      center	0.179502 0.0470276 -0.0708618
+					      size	559 559 559
+					    }
+
+					    center	0 0 0
+					  }
+					  DEF WSA_root Group {
+					    children	Group {
+					      children	[
+						DEF MARS-ANCHOR Anchor {
+						  children	DEF MARS-ROOT Transform {
+						    children	DEF MARS-XFORM Transform {
+						      children	[
+							DEF MARS-TIMER TimeSensor {
+							  cycleInterval	24.6
+							  loop	TRUE
+							  startTime	0
+							  stopTime	0
+							}
+							DEF MARS-ENGINE OrientationInterpolator {
+							  key	[ 0, 0.5, 1 ]
+							  keyValue	[ 0 0 1  0,
+								    0 1 0  3.14,
+								    0 1 0  6.28002 ]
+							}
+							LOD {
+							  center	0 0 0
+							  range	[ 1680, 6300 ]
+							  level	[
+							    DEF sphereit Transform {
+							      children	Transform {
+								children	Transform {
+								  children	Shape {
+								    appearance	Appearance {
+								      material	Material {
+									diffuseColor	1 1 1
+								      }
+
+								      texture	ImageTexture {
+									url	"marsTexture.jpg"
+								      }
+
+								    }
+
+								    geometry	Sphere {
+								      radius	1
+								    }
+
+								  }
+
+								  scale	4.22 4.22 4.22
+								}
+
+								scale	3 3 3
+							      }
+
+							      rotation	0 1 0  1.74875
+							    }
+							    Transform {
+							      children	Transform {
+								children	Shape {
+								  appearance	Appearance {
+								    material	DEF _DefMat Material {
+								      diffuseColor	0.54 0.188 0.144
+								    }
+
+								  }
+
+								  geometry	USE smallSphere
+
+								}
+
+								scale	4.22 4.22 4.22
+							      }
+
+							      scale	3 3 3
+							    }
+							    Group {
+							      children	[
+							      ]
+							    }
+							  ]
+							}
+						      ]
+						      rotation	0 0 1  0
+						    }
+
+						  }
+
+						  url	"Mars/HTML/index.html"
+						  parameter	"target=secondary"
+						}
+						LOD {
+						  center	0 0 0
+						  range	1600
+						  level	[
+						    Group {
+						      children	[
+							DEF PHOBOS-ANCHOR Anchor {
+							  children	DEF PHOBOS-XFORM Transform {
+							    children	[
+							      DEF PHOBOS-TIMER TimeSensor {
+								cycleInterval	7.65
+								loop	TRUE
+								startTime	0
+								stopTime	0
+							      }
+							      DEF PHOBOS-ENGINE OrientationInterpolator {
+								key	[ 0, 0.5, 1 ]
+								keyValue	[ 0 0 1  0,
+									  0 1 0  3.14,
+									  0 1 0  6.28002 ]
+							      }
+							      Transform {
+								children	Transform {
+								  children	Transform {
+								    children	Shape {
+								      appearance	Appearance {
+									material	Material {
+									  ambientIntensity	0.2
+									  diffuseColor	0.58 0.66 0.8
+									}
+
+								      }
+
+								      geometry	Sphere {radius 1 }
+
+								    }
+
+								    translation	1.5 0 1.5
+								    scale	0.15 0.15 0.15
+								  }
+
+								  scale	4.22 4.22 4.22
+								}
+
+								scale	3 3 3
+							      }
+							    ]
+							    rotation	0 0 1  0
+							  }
+
+							  url	"Mars/HTML/Phobos.html"
+							  parameter	"target=secondary"
+							}
+							DEF DEIMOS-ANCHOR Anchor {
+							  children	DEF DEIMOS-XFORM Transform {
+							    children	[
+							      DEF DEIMOS-TIMER TimeSensor {
+								cycleInterval	30.28
+								loop	TRUE
+								startTime	0
+								stopTime	0
+							      }
+							      DEF DEIMOS-ENGINE OrientationInterpolator {
+								key	[ 0, 0.5, 1 ]
+								keyValue	[ 0 0 1  0,
+									  0 1 0  3.14,
+									  0 1 0  6.28002 ]
+							      }
+							      Transform {
+								children	Transform {
+								  children	Transform {
+								    children	Shape {
+								      appearance	Appearance {
+									material	Material {
+									  diffuseColor	0.627027 0.14036 0
+									}
+
+								      }
+
+								      geometry	Sphere { radius 1 }
+
+								    }
+
+								    translation	3 0 3
+								    scale	0.1 0.1 0.1
+								  }
+
+								  scale	4.22 4.22 4.22
+								}
+
+								scale	3 3 3
+							      }
+							    ]
+							    rotation	0 0 1  0
+							  }
+
+							  url	"Mars/HTML/Diemos.html"
+							  parameter	"target=secondary"
+							}
+						      ]
+						    }
+						    Group {
+						      children	[
+						      ]
+						    }
+						  ]
+						}
+					      ]
+					    }
+
+					  }
+					]
+					translation	-1416 0 0
+					rotation	0 0 1  0
+				      }
+					DEF MAR_SND SND_RES {
+					  audioSource	"Sounds/sci23Loop.mpa"
+					  midiSource	"Sounds/Mars_mod.mid"
+					}
+				      DEF mars_approach Viewpoint {
+					position	-1397 25.32 -42.27
+					orientation	-0.054 0.965 0.256  2.838
+					fieldOfView	0.785398
+					description	"mars"
+				      }
+				      DEF marsview Viewpoint {
+					position	-1352 53.6 51.3
+					orientation	-0.5 0.81 0.29  1.113
+					fieldOfView	0.959931
+					description	"mars"
+				      }
+				      DEF mars_depart Viewpoint {
+					position	-1499.02 157.332 241.165
+					orientation	-0.631833 -0.714179 -0.301224  0.764911
+					fieldOfView	0.959931
+					description	"mars_depart"
+				      }
+				    ]
+				    rotation	0 0 1  0
+				  }
+
+				  rotation	0 1 0  2.995
+				}
+				DEF marring Transform {
+				  children	Shape {
+				    appearance	Appearance {
+				      material	Material {
+					ambientIntensity	0.569697
+					emissiveColor	0.34 0 0.05
+				      }
+
+				    }
+
+				    geometry	USE ringLine
+
+				  }
+
+				  translation	0 0 0
+				  rotation	0 0 1  0
+				  scale	1416 1 1416
+				  scaleOrientation	0 0 1  0
+				}
+			      ]
+			      translation	132 0 0
+			      rotation	0 0 1  0.0323008
+			    }
+			    DEF jup Transform {
+			      children	[
+				DEF juprinit Transform {
+				  children	DEF jupiter Transform {
+				    children	[
+				      DEF JUPITER-PERF-LOGIC Script {
+					eventOut					SFTime					startTime
+					eventOut					SFTime					stopTime
+					eventIn					SFTime					vizInTime
+					eventIn					SFTime					vizOutTime
+					eventIn					SFTime					proxInTime
+					eventIn					SFTime					proxOutTime
+					field					SFBool					inRange	FALSE
+					field					SFBool					visible	FALSE
+					url	"vrmlscript:
+            function vizInTime(time) {
+                visible = TRUE;
+                if (inRange) startTime = time;
+            }
+
+            function proxInTime(time) {
+                inRange = TRUE;
+                if (visible) startTime = time;
+            }
+
+            function vizOutTime(time) {
+                visible = FALSE;
+                stopTime = time;
+            }
+
+            function proxOutTime(time) {
+                inRange = FALSE;
+                stopTime = time;
+            }
+
+        "
+				      }
+				      Transform {
+					children	DEF JUPITER-VIZ-SENSOR VisibilitySensor {
+					  center	6.19611 -2.90894 -5.00769
+					  size	1594.12 521.343 1457.02
+					}
+
+					center	0 0 0
+				      }
+				      Transform {
+					children	DEF JUPITER-PROX-SENSOR ProximitySensor {
+					  center	4.86185 -4.45552 -5.75073
+					  size	6000 6000 6000
+					}
+
+					center	0 0 0
+				      }
+				      DEF WSA_root Group {
+					children	DEF JUPITER-ANCHOR Anchor {
+					  children	DEF JUPITER-ROOT Transform {
+					    children	DEF JUPITER-XFORM Transform {
+					      children	[
+						DEF JUPITER-TIMER TimeSensor {
+						  cycleInterval	9.800000000000001
+						  loop	TRUE
+						  startTime	0
+						  stopTime	0
+						}
+						DEF JUPITER-ENGINE OrientationInterpolator {
+						  key	[ 0, 0.5, 1 ]
+						  keyValue	[ 0 0 1  0,
+							    0 1 0  3.14,
+							    0 1 0  6.28002 ]
+						}
+						LOD {
+						  center	0 0 0
+						  range	[ 36000, 135000 ]
+						  level	[
+						    Group {
+						      children	Shape {
+							appearance	Appearance {
+							  material	Material {
+							    ambientIntensity	0.2
+							    diffuseColor	1 1 1
+							    specularColor	0 0 0
+							    emissiveColor	0 0 0
+							    shininess	0.2
+							    transparency	0
+							  }
+
+							  texture	ImageTexture {
+							    url	"jupiterTexture.jpg"
+							  }
+
+							}
+
+							geometry	Sphere {
+							  radius	260
+							}
+
+						      }
+
+						    }
+						    Transform {
+						      children	Transform {
+							children	DEF WSA_root Group {
+							  children	Group {
+							    children	Shape {
+							      appearance	Appearance {
+								material	DEF _DefMat Material {
+								  diffuseColor	0.673469 0.186674 0
+								  specularColor	0.193878 0.0294159 0.0294159
+								}
+
+							      }
+
+							      geometry	USE smallSphere
+
+							    }
+
+							  }
+
+							}
+
+							scale	88.7 88.7 88.7
+						      }
+
+						      scale	3 3 3
+						    }
+						    Group {
+						      children	[
+						      ]
+						    }
+						  ]
+						}
+					      ]
+					      rotation	0 0 1  0
+					    }
+
+					    scale	1 0.95 1
+					  }
+
+					  url	"Jupiter/HTML/index.html"
+					  parameter	"target=secondary"
+					}
+
+				      }
+					DEF JUP_SND SND_RES {
+					  audioSource	"Sounds/earth13Loop.mpa"
+					  midiSource	"Sounds/Jupiter.mid"
+					  maxFront 10000
+					  maxBack  10000
+					}
+				      DEF jupiter_approach Viewpoint {
+					position	1656.85 -1191.87 4900.42
+					orientation	0.806642 0.587459 0.0649709  0.159378
+					fieldOfView	0.59931
+					description	"jupiter_approach"
+				      }
+				      DEF jupiter_approach2 Viewpoint {
+					position	1451.7 1174.93 2373.83
+					orientation	-0.781646 0.526054 0.335107  0.589953
+					fieldOfView	0.59931
+					description	"jupiter_approach2"
+				      }
+				      DEF jupiterview Viewpoint {
+					position	328.619 80.6893 688.026
+					orientation	-0.811678 0.522382 0.261336  0.284115
+					fieldOfView	0.59931
+					description	"jupiter"
+				      }
+				      DEF jupiter_depart Viewpoint {
+					position	-2034.02 2168.88 7533.51
+					orientation	-0.326166 -0.848293 -0.417151  0.53842
+					fieldOfView	0.5
+					description	"jupiter_depart"
+				      }
+				    ]
+				    translation	-4830 0 0
+				    rotation	0 0 -1  0.0540003
+				    scale	1 1 1
+				  }
+
+				  rotation	0 1 0  0.8
+				}
+				DEF jupring Transform {
+				  children	Group {
+				    children	Group {
+				      children	Shape {
+					appearance	Appearance {
+					  material	Material {
+					    emissiveColor	0.4 0.12 0
+					  }
+
+					}
+
+					geometry	USE ringLine
+
+				      }
+
+				    }
+
+				  }
+
+				  scale	4830 0 4830
+				}
+			      ]
+			      translation	231 0 0
+			      rotation	0 0 1  0.0229025
+			    }
+			    DEF sat Transform {
+			      children	[
+				DEF satrinit Transform {
+				  children	DEF saturn Transform {
+				    children	[
+				      Transform {
+					children	DEF SATURN-PROX-SENSOR ProximitySensor {
+					  center	1.34162 10.1634 0.882751
+					  size	3500 3500 3500
+					}
+
+					center	0 0 0
+				      }
+				      DEF SATURN-ANCHOR Anchor {
+					children	DEF SATURN-XFORM Transform {
+					  children	[
+					    DEF SATURN-TIMER TimeSensor {
+					      cycleInterval	24
+					      loop	TRUE
+					      startTime	0
+					      stopTime	0
+					    }
+					    DEF SATURN-ENGINE OrientationInterpolator {
+					      key	[ 0, 0.5, 1 ]
+					      keyValue	[ 0 0 1  0,
+						        0 1 0  3.14,
+						        0 1 0  6.28002 ]
+					    }
+					    LOD {
+					      center	0 0 0
+					      range	[ 30000, 100000 ]
+					      level	[
+						Group {
+						  children	Transform {
+						    children	Transform {
+						      children	Transform {
+							children	Shape {
+							  appearance	Appearance {
+							    material	Material {
+							      ambientIntensity	0.1
+							      diffuseColor	1 1 1
+							    }
+
+							    texture	ImageTexture {
+							      url	"saturnTexture.jpg"
+							    }
+
+							  }
+
+							  geometry	Sphere {
+							    radius	1
+							  }
+
+							}
+
+							scale	74.6 74.6 74.6
+						      }
+
+						      scale	3 3 3
+						    }
+
+						    rotation	0 1 0  3.88418
+						  }
+
+						}
+						Transform {
+						  children	Transform {
+						    children	Shape {
+						      appearance	Appearance {
+							material	DEF _DefMat Material {
+							  diffuseColor	0.795918 0.535343 0.193526
+							}
+
+						      }
+
+						      geometry	USE smallSphere
+
+						    }
+
+						    scale	74.6 74.6 74.6
+						  }
+
+						  scale	3 3 3
+						}
+						Group {
+						  children	[
+						  ]
+						}
+					      ]
+					    }
+					  ]
+					  rotation	0 0 1  0
+					  scale	1 0.9 1
+					}
+
+					url	"Saturn/HTML/index.html"
+					parameter	"target=secondary"
+				      }
+				      LOD {
+					center	0 0 0
+					range	100000
+					level	Group {
+					  children	[
+					    Collision {
+					      children	Transform {
+						children	Transform {
+						  children	Group {
+						    children	[
+						      Transform {
+							children	Group {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	Material {
+								ambientIntensity	0.2
+								diffuseColor	0.138122 0.065078 0.0240763
+								specularColor	0 0 0
+								emissiveColor	0 0 0
+								shininess	0.2
+								transparency	0.39
+							      }
+
+							    }
+
+							    geometry	IndexedFaceSet {
+							      coord	Coordinate {
+								point	[ 95 0 0,
+									  100 0 0,
+									  94.2509 0 -11.9067,
+									  99.2115 0 -12.5333,
+									  92.0154 0 -23.6255,
+									  96.8583 0 -24.869,
+									  88.3288 0 -34.9718,
+									  92.9776 0 -36.8125,
+									  83.2491 0 -45.7666,
+									  87.6307 0 -48.1754,
+									  76.8566 0 -55.8396,
+									  80.9017 0 -58.7785,
+									  69.252 0 -65.032,
+									  72.8969 0 -68.4547,
+									  60.5553 0 -73.1988,
+									  63.7424 0 -77.0513,
+									  50.9035 0 -80.2112,
+									  53.5827 0 -84.4328,
+									  40.449 0 -85.9586,
+									  42.5779 0 -90.4827,
+									  29.3566 0 -90.3504,
+									  30.9017 0 -95.1057,
+									  17.8012 0 -93.3173,
+									  18.7381 0 -98.2287,
+									  5.9651 0 -94.8125,
+									  6.27905 0 -99.8027,
+									  -5.96509 0 -94.8125,
+									  -6.27905 0 -99.8027,
+									  -17.8012 0 -93.3173,
+									  -18.7381 0 -98.2287,
+									  -29.3566 0 -90.3504,
+									  -30.9017 0 -95.1057,
+									  -40.449 0 -85.9586,
+									  -42.5779 0 -90.4827,
+									  -50.9035 0 -80.2112,
+									  -53.5827 0 -84.4328,
+									  -60.5553 0 -73.1987,
+									  -63.7424 0 -77.0513,
+									  -69.252 0 -65.032,
+									  -72.8969 0 -68.4547,
+									  -76.8566 0 -55.8396,
+									  -80.9017 0 -58.7785,
+									  -83.2491 0 -45.7666,
+									  -87.6307 0 -48.1754,
+									  -88.3288 0 -34.9718,
+									  -92.9776 0 -36.8125,
+									  -92.0154 0 -23.6255,
+									  -96.8583 0 -24.869,
+									  -94.2509 0 -11.9067,
+									  -99.2115 0 -12.5333,
+									  -95 0 8.30516e-06,
+									  -100 0 8.74228e-06,
+									  -94.2509 0 11.9066,
+									  -99.2115 0 12.5333,
+									  -92.0154 0 23.6256,
+									  -96.8583 0 24.869,
+									  -88.3288 0 34.9718,
+									  -92.9776 0 36.8125,
+									  -83.2491 0 45.7666,
+									  -87.6307 0 48.1754,
+									  -76.8566 0 55.8396,
+									  -80.9017 0 58.7785,
+									  -69.252 0 65.032,
+									  -72.8969 0 68.4547,
+									  -60.5553 0 73.1987,
+									  -63.7424 0 77.0513,
+									  -50.9035 0 80.2112,
+									  -53.5827 0 84.4328,
+									  -40.449 0 85.9586,
+									  -42.5779 0 90.4827,
+									  -29.3566 0 90.3504,
+									  -30.9017 0 95.1057,
+									  -17.8012 0 93.3173,
+									  -18.7381 0 98.2287,
+									  -5.9651 0 94.8125,
+									  -6.27905 0 99.8027,
+									  5.9651 0 94.8125,
+									  6.27906 0 99.8027,
+									  17.8012 0 93.3173,
+									  18.7381 0 98.2287,
+									  29.3566 0 90.3504,
+									  30.9017 0 95.1056,
+									  40.4491 0 85.9586,
+									  42.5779 0 90.4827,
+									  50.9035 0 80.2112,
+									  53.5827 0 84.4328,
+									  60.5553 0 73.1987,
+									  63.7424 0 77.0513,
+									  69.252 0 65.032,
+									  72.8969 0 68.4547,
+									  76.8566 0 55.8396,
+									  80.9017 0 58.7785,
+									  83.2491 0 45.7666,
+									  87.6307 0 48.1754,
+									  88.3288 0 34.9718,
+									  92.9776 0 36.8125,
+									  92.0154 0 23.6255,
+									  96.8583 0 24.869,
+									  94.2509 0 11.9066,
+									  99.2115 0 12.5333 ]
+							      }
+
+							      color	Color {
+								color	[ 0.138122 0.065078 0.0240763,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.138122 0.065078 0.0240763,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763,
+									  0.138122 0.065078 0.0240763 ]
+							      }
+
+							      coordIndex	[ 0, 1, 2, -1, 3, 2, 1, -1,
+								        3, 4, 2, -1, 3, 5, 4, -1,
+								        6, 4, 5, -1, 6, 5, 7, -1,
+								        6, 7, 8, -1, 9, 8, 7, -1,
+								        9, 10, 8, -1, 9, 11, 10, -1,
+								        12, 10, 11, -1, 12, 11, 13, -1,
+								        12, 13, 14, -1, 15, 14, 13, -1,
+								        15, 16, 14, -1, 15, 17, 16, -1,
+								        18, 16, 17, -1, 18, 17, 19, -1,
+								        18, 19, 20, -1, 21, 20, 19, -1,
+								        21, 22, 20, -1, 21, 23, 22, -1,
+								        24, 22, 23, -1, 24, 23, 25, -1,
+								        24, 25, 26, -1, 27, 26, 25, -1,
+								        27, 28, 26, -1, 27, 29, 28, -1,
+								        30, 28, 29, -1, 30, 29, 31, -1,
+								        30, 31, 32, -1, 33, 32, 31, -1,
+								        33, 34, 32, -1, 33, 35, 34, -1,
+								        36, 34, 35, -1, 36, 35, 37, -1,
+								        36, 37, 38, -1, 39, 38, 37, -1,
+								        39, 40, 38, -1, 39, 41, 40, -1,
+								        42, 40, 41, -1, 42, 41, 43, -1,
+								        42, 43, 44, -1, 45, 44, 43, -1,
+								        45, 46, 44, -1, 45, 47, 46, -1,
+								        48, 46, 47, -1, 48, 47, 49, -1,
+								        48, 49, 50, -1, 51, 50, 49, -1,
+								        51, 52, 50, -1, 51, 53, 52, -1,
+								        54, 52, 53, -1, 54, 53, 55, -1,
+								        54, 55, 56, -1, 57, 56, 55, -1,
+								        57, 58, 56, -1, 57, 59, 58, -1,
+								        60, 58, 59, -1, 60, 59, 61, -1,
+								        60, 61, 62, -1, 63, 62, 61, -1,
+								        63, 64, 62, -1, 63, 65, 64, -1,
+								        66, 64, 65, -1, 66, 65, 67, -1,
+								        66, 67, 68, -1, 69, 68, 67, -1,
+								        69, 70, 68, -1, 69, 71, 70, -1,
+								        72, 70, 71, -1, 72, 71, 73, -1,
+								        72, 73, 74, -1, 75, 74, 73, -1,
+								        75, 76, 74, -1, 75, 77, 76, -1,
+								        78, 76, 77, -1, 78, 77, 79, -1,
+								        78, 79, 80, -1, 81, 80, 79, -1,
+								        81, 82, 80, -1, 81, 83, 82, -1,
+								        84, 82, 83, -1, 84, 83, 85, -1,
+								        84, 85, 86, -1, 87, 86, 85, -1,
+								        87, 88, 86, -1, 87, 89, 88, -1,
+								        90, 88, 89, -1, 90, 89, 91, -1,
+								        90, 91, 92, -1, 93, 92, 91, -1,
+								        93, 94, 92, -1, 93, 95, 94, -1,
+								        96, 94, 95, -1, 96, 95, 97, -1,
+								        96, 97, 98, -1, 99, 98, 97, -1,
+								        99, 0, 98, -1, 99, 1, 0, -1 ]
+							      colorIndex	[ 68, 41, 69, -1, 43, 70, 42, -1,
+								        44, 72, 71, -1, 45, 46, 73, -1,
+								        75, 74, 47, -1, 77, 48, 49, -1,
+								        76, 50, 79, -1, 52, 78, 51, -1,
+								        53, 81, 80, -1, 196, 197, 82, -1,
+								        84, 83, 198, -1, 85, 199, 200, -1,
+								        86, 201, 87, -1, 203, 88, 202, -1,
+								        204, 90, 89, -1, 205, 206, 91, -1,
+								        93, 92, 207, -1, 94, 208, 209, -1,
+								        95, 210, 96, -1, 212, 97, 211, -1,
+								        215, 99, 98, -1, 213, 214, 100, -1,
+								        102, 101, 216, -1, 105, 217, 218, -1,
+								        103, 226, 104, -1, 220, 106, 219, -1,
+								        221, 108, 107, -1, 225, 222, 109, -1,
+								        111, 110, 223, -1, 115, 224, 114, -1,
+								        112, 227, 113, -1, 229, 117, 228, -1,
+								        230, 118, 116, -1, 231, 232, 119, -1,
+								        121, 120, 233, -1, 122, 234, 235, -1,
+								        123, 237, 124, -1, 238, 125, 236, -1,
+								        239, 127, 126, -1, 240, 241, 128, -1,
+								        130, 129, 242, -1, 131, 243, 244, -1,
+								        132, 247, 133, -1, 246, 134, 245, -1,
+								        249, 136, 135, -1, 248, 250, 137, -1,
+								        139, 138, 251, -1, 140, 252, 253, -1,
+								        141, 254, 142, -1, 256, 143, 255, -1,
+								        257, 145, 144, -1, 258, 259, 146, -1,
+								        148, 147, 260, -1, 149, 261, 262, -1,
+								        150, 263, 151, -1, 265, 152, 264, -1,
+								        266, 154, 153, -1, 267, 268, 155, -1,
+								        159, 156, 269, -1, 157, 270, 271, -1,
+								        158, 272, 160, -1, 274, 161, 273, -1,
+								        276, 163, 162, -1, 275, 277, 164, -1,
+								        166, 165, 278, -1, 170, 279, 280, -1,
+								        167, 283, 168, -1, 282, 169, 281, -1,
+								        285, 172, 171, -1, 284, 287, 173, -1,
+								        178, 174, 286, -1, 175, 288, 289, -1,
+								        176, 291, 177, -1, 292, 179, 290, -1,
+								        294, 181, 180, -1, 293, 295, 182, -1,
+								        184, 183, 297, -1, 185, 296, 298, -1,
+								        186, 299, 187, -1, 27, 188, 0, -1,
+								        29, 190, 189, -1, 26, 25, 191, -1,
+								        195, 192, 28, -1, 193, 24, 23, -1,
+								        194, 22, 55, -1, 20, 54, 21, -1,
+								        19, 6, 7, -1, 18, 8, 5, -1,
+								        1, 4, 9, -1, 3, 10, 11, -1,
+								        2, 12, 56, -1, 13, 30, 14, -1,
+								        16, 57, 15, -1, 17, 31, 59, -1,
+								        60, 58, 32, -1, 61, 33, 34, -1,
+								        62, 37, 63, -1, 36, 64, 35, -1,
+								        39, 66, 65, -1, 38, 40, 67, -1 ]
+							      solid	FALSE
+							      creaseAngle	0.5
+							    }
+
+							  }
+
+							}
+
+							translation	0 0 0
+							rotation	0 0 1  0
+							scale	0.920201 0.920201 0.920201
+						      }
+						      Transform {
+							children	Group {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	Material {
+								ambientIntensity	0.2
+								diffuseColor	0.209945 0.0989186 0.0365959
+								specularColor	0 0 0
+								emissiveColor	0 0 0
+								shininess	0.2
+								transparency	0.39
+							      }
+
+							    }
+
+							    geometry	IndexedFaceSet {
+							      coord	Coordinate {
+								point	[ 50 0 0,
+									  70 0 0,
+									  49.6057 0 -6.26666,
+									  69.448 0 -8.77333,
+									  48.4292 0 -12.4345,
+									  67.8008 0 -17.4083,
+									  46.4888 0 -18.4062,
+									  65.0844 0 -25.7687,
+									  43.8153 0 -24.0877,
+									  61.3415 0 -33.7228,
+									  40.4508 0 -29.3893,
+									  56.6312 0 -41.145,
+									  36.4484 0 -34.2274,
+									  51.0278 0 -47.9183,
+									  31.8712 0 -38.5257,
+									  44.6197 0 -53.9359,
+									  26.7913 0 -42.2164,
+									  37.5079 0 -59.103,
+									  21.289 0 -45.2414,
+									  29.8045 0 -63.3379,
+									  15.4508 0 -47.5528,
+									  21.6312 0 -66.574,
+									  9.36907 0 -49.1144,
+									  13.1167 0 -68.7601,
+									  3.13953 0 -49.9013,
+									  4.39534 0 -69.8619,
+									  -3.13952 0 -49.9013,
+									  -4.39533 0 -69.8619,
+									  -9.36907 0 -49.1144,
+									  -13.1167 0 -68.7601,
+									  -15.4509 0 -47.5528,
+									  -21.6312 0 -66.574,
+									  -21.289 0 -45.2414,
+									  -29.8045 0 -63.3379,
+									  -26.7913 0 -42.2164,
+									  -37.5079 0 -59.103,
+									  -31.8712 0 -38.5257,
+									  -44.6197 0 -53.9359,
+									  -36.4484 0 -34.2274,
+									  -51.0278 0 -47.9183,
+									  -40.4509 0 -29.3893,
+									  -56.6312 0 -41.145,
+									  -43.8153 0 -24.0877,
+									  -61.3415 0 -33.7228,
+									  -46.4888 0 -18.4062,
+									  -65.0844 0 -25.7687,
+									  -48.4292 0 -12.4345,
+									  -67.8008 0 -17.4083,
+									  -49.6057 0 -6.26666,
+									  -69.448 0 -8.77332,
+									  -50 0 4.37114e-06,
+									  -70 0 6.11959e-06,
+									  -49.6057 0 6.26666,
+									  -69.448 0 8.77332,
+									  -48.4292 0 12.4345,
+									  -67.8008 0 17.4083,
+									  -46.4888 0 18.4062,
+									  -65.0844 0 25.7687,
+									  -43.8153 0 24.0877,
+									  -61.3415 0 33.7227,
+									  -40.4508 0 29.3893,
+									  -56.6312 0 41.145,
+									  -36.4484 0 34.2274,
+									  -51.0278 0 47.9183,
+									  -31.8712 0 38.5257,
+									  -44.6197 0 53.9359,
+									  -26.7913 0 42.2164,
+									  -37.5079 0 59.103,
+									  -21.289 0 45.2413,
+									  -29.8046 0 63.3379,
+									  -15.4509 0 47.5528,
+									  -21.6312 0 66.574,
+									  -9.36905 0 49.1144,
+									  -13.1167 0 68.7601,
+									  -3.13953 0 49.9013,
+									  -4.39534 0 69.8619,
+									  3.13953 0 49.9013,
+									  4.39534 0 69.8619,
+									  9.36905 0 49.1144,
+									  13.1167 0 68.7601,
+									  15.4509 0 47.5528,
+									  21.6312 0 66.574,
+									  21.289 0 45.2413,
+									  29.8046 0 63.3379,
+									  26.7913 0 42.2164,
+									  37.5079 0 59.103,
+									  31.8712 0 38.5257,
+									  44.6197 0 53.9359,
+									  36.4484 0 34.2274,
+									  51.0278 0 47.9183,
+									  40.4508 0 29.3893,
+									  56.6312 0 41.145,
+									  43.8153 0 24.0877,
+									  61.3415 0 33.7228,
+									  46.4888 0 18.4062,
+									  65.0844 0 25.7687,
+									  48.4292 0 12.4345,
+									  67.8008 0 17.4083,
+									  49.6057 0 6.26666,
+									  69.448 0 8.77332 ]
+							      }
+
+							      color	Color {
+								color	[ 0.209945 0.0989186 0.0365959,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.629834 0.425433 0.211269,
+									  0.828729 0.647246 0.343295,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.209945 0.0989186 0.0365959,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.828729 0.647246 0.343295,
+									  0.209945 0.0989186 0.0365959 ]
+							      }
+
+							      coordIndex	[ 0, 1, 2, -1, 3, 2, 1, -1,
+								        3, 4, 2, -1, 3, 5, 4, -1,
+								        6, 4, 5, -1, 6, 5, 7, -1,
+								        6, 7, 8, -1, 9, 8, 7, -1,
+								        9, 10, 8, -1, 9, 11, 10, -1,
+								        12, 10, 11, -1, 12, 11, 13, -1,
+								        12, 13, 14, -1, 15, 14, 13, -1,
+								        15, 16, 14, -1, 15, 17, 16, -1,
+								        18, 16, 17, -1, 18, 17, 19, -1,
+								        18, 19, 20, -1, 21, 20, 19, -1,
+								        21, 22, 20, -1, 21, 23, 22, -1,
+								        24, 22, 23, -1, 24, 23, 25, -1,
+								        24, 25, 26, -1, 27, 26, 25, -1,
+								        27, 28, 26, -1, 27, 29, 28, -1,
+								        30, 28, 29, -1, 30, 29, 31, -1,
+								        30, 31, 32, -1, 33, 32, 31, -1,
+								        33, 34, 32, -1, 33, 35, 34, -1,
+								        36, 34, 35, -1, 36, 35, 37, -1,
+								        36, 37, 38, -1, 39, 38, 37, -1,
+								        39, 40, 38, -1, 39, 41, 40, -1,
+								        42, 40, 41, -1, 42, 41, 43, -1,
+								        42, 43, 44, -1, 45, 44, 43, -1,
+								        45, 46, 44, -1, 45, 47, 46, -1,
+								        48, 46, 47, -1, 48, 47, 49, -1,
+								        48, 49, 50, -1, 51, 50, 49, -1,
+								        51, 52, 50, -1, 51, 53, 52, -1,
+								        54, 52, 53, -1, 54, 53, 55, -1,
+								        54, 55, 56, -1, 57, 56, 55, -1,
+								        57, 58, 56, -1, 57, 59, 58, -1,
+								        60, 58, 59, -1, 60, 59, 61, -1,
+								        60, 61, 62, -1, 63, 62, 61, -1,
+								        63, 64, 62, -1, 63, 65, 64, -1,
+								        66, 64, 65, -1, 66, 65, 67, -1,
+								        66, 67, 68, -1, 69, 68, 67, -1,
+								        69, 70, 68, -1, 69, 71, 70, -1,
+								        72, 70, 71, -1, 72, 71, 73, -1,
+								        72, 73, 74, -1, 75, 74, 73, -1,
+								        75, 76, 74, -1, 75, 77, 76, -1,
+								        78, 76, 77, -1, 78, 77, 79, -1,
+								        78, 79, 80, -1, 81, 80, 79, -1,
+								        81, 82, 80, -1, 81, 83, 82, -1,
+								        84, 82, 83, -1, 84, 83, 85, -1,
+								        84, 85, 86, -1, 87, 86, 85, -1,
+								        87, 88, 86, -1, 87, 89, 88, -1,
+								        90, 88, 89, -1, 90, 89, 91, -1,
+								        90, 91, 92, -1, 93, 92, 91, -1,
+								        93, 94, 92, -1, 93, 95, 94, -1,
+								        96, 94, 95, -1, 96, 95, 97, -1,
+								        96, 97, 98, -1, 99, 98, 97, -1,
+								        99, 0, 98, -1, 99, 1, 0, -1 ]
+							      colorIndex	[ 180, 102, 183, -1, 353, 183, 396, -1,
+								        106, 186, 183, -1, 354, 395, 186, -1,
+								        188, 186, 238, -1, 188, 355, 237, -1,
+								        188, 356, 193, -1, 357, 193, 394, -1,
+								        358, 194, 193, -1, 236, 359, 194, -1,
+								        199, 194, 113, -1, 199, 360, 115, -1,
+								        199, 361, 198, -1, 362, 198, 393, -1,
+								        363, 203, 198, -1, 117, 364, 203, -1,
+								        206, 203, 119, -1, 206, 365, 121, -1,
+								        206, 366, 210, -1, 367, 210, 392, -1,
+								        368, 212, 210, -1, 240, 126, 212, -1,
+								        216, 212, 369, -1, 216, 391, 370, -1,
+								        216, 371, 218, -1, 372, 218, 1, -1,
+								        3, 221, 218, -1, 373, 374, 221, -1,
+								        224, 221, 5, -1, 224, 375, 9, -1,
+								        224, 376, 401, -1, 377, 227, 390, -1,
+								        389, 228, 227, -1, 13, 378, 228, -1,
+								        243, 228, 18, -1, 243, 379, 380, -1,
+								        243, 16, 246, -1, 382, 246, 381, -1,
+								        21, 250, 388, -1, 383, 384, 250, -1,
+								        253, 250, 385, -1, 253, 24, 386, -1,
+								        253, 387, 255, -1, 341, 255, 27, -1,
+								        30, 257, 255, -1, 330, 340, 257, -1,
+								        259, 257, 33, -1, 259, 331, 332, -1,
+								        259, 35, 262, -1, 334, 262, 333, -1,
+								        339, 264, 262, -1, 37, 335, 264, -1,
+								        266, 264, 336, -1, 266, 39, 337, -1,
+								        266, 338, 268, -1, 322, 268, 41, -1,
+								        43, 271, 268, -1, 323, 324, 271, -1,
+								        279, 271, 56, -1, 279, 325, 326, -1,
+								        279, 46, 283, -1, 328, 283, 327, -1,
+								        55, 286, 283, -1, 329, 308, 286, -1,
+								        288, 286, 54, -1, 288, 307, 306, -1,
+								        288, 49, 290, -1, 304, 290, 305, -1,
+								        68, 292, 290, -1, 303, 302, 292, -1,
+								        295, 292, 69, -1, 295, 301, 300, -1,
+								        295, 71, 166, -1, 75, 166, 309, -1,
+								        314, 145, 166, -1, 310, 311, 145, -1,
+								        146, 145, 130, -1, 146, 312, 313, -1,
+								        146, 131, 141, -1, 316, 141, 317, -1,
+								        315, 151, 141, -1, 82, 318, 151, -1,
+								        152, 151, 319, -1, 152, 85, 320, -1,
+								        152, 87, 156, -1, 89, 156, 321, -1,
+								        400, 158, 156, -1, 342, 343, 158, -1,
+								        161, 158, 91, -1, 161, 344, 345, -1,
+								        161, 93, 164, -1, 95, 164, 346, -1,
+								        399, 170, 164, -1, 347, 348, 170, -1,
+								        172, 170, 97, -1, 172, 398, 349, -1,
+								        172, 99, 177, -1, 101, 177, 350, -1,
+								        397, 180, 177, -1, 351, 352, 180, -1 ]
+							      solid	FALSE
+							      creaseAngle	0.5
+							    }
+
+							  }
+
+							}
+
+							translation	-0.183407 0.00152588 -0.164864
+							scale	1.21054 1.21054 1.21054
+						      }
+						      Transform {
+							children	Group {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	Material {
+								ambientIntensity	0.2
+								diffuseColor	0.629834 0.425433 0.211269
+								specularColor	0 0 0
+								emissiveColor	0 0 0
+								shininess	0.2
+								transparency	0.8
+							      }
+
+							    }
+
+							    geometry	IndexedFaceSet {
+							      coord	Coordinate {
+								point	[ 50 0 0,
+									  51 0 0,
+									  49.6057 0 -6.26666,
+									  50.5979 0 -6.39199,
+									  48.4292 0 -12.4345,
+									  49.3977 0 -12.6832,
+									  46.4888 0 -18.4062,
+									  47.4186 0 -18.7744,
+									  43.8153 0 -24.0877,
+									  44.6916 0 -24.5694,
+									  40.4508 0 -29.3893,
+									  41.2599 0 -29.977,
+									  36.4484 0 -34.2274,
+									  37.1774 0 -34.9119,
+									  31.8712 0 -38.5257,
+									  32.5086 0 -39.2962,
+									  26.7913 0 -42.2164,
+									  27.3272 0 -43.0607,
+									  21.289 0 -45.2414,
+									  21.7147 0 -46.1462,
+									  15.4508 0 -47.5528,
+									  15.7599 0 -48.5039,
+									  9.36907 0 -49.1144,
+									  9.55645 0 -50.0966,
+									  3.13953 0 -49.9013,
+									  3.20232 0 -50.8994,
+									  -3.13952 0 -49.9013,
+									  -3.20231 0 -50.8994,
+									  -9.36907 0 -49.1144,
+									  -9.55645 0 -50.0966,
+									  -15.4509 0 -47.5528,
+									  -15.7599 0 -48.5039,
+									  -21.289 0 -45.2414,
+									  -21.7147 0 -46.1462,
+									  -26.7913 0 -42.2164,
+									  -27.3272 0 -43.0607,
+									  -31.8712 0 -38.5257,
+									  -32.5086 0 -39.2962,
+									  -36.4484 0 -34.2274,
+									  -37.1774 0 -34.9119,
+									  -40.4509 0 -29.3893,
+									  -41.2599 0 -29.977,
+									  -43.8153 0 -24.0877,
+									  -44.6916 0 -24.5694,
+									  -46.4888 0 -18.4062,
+									  -47.4186 0 -18.7744,
+									  -48.4292 0 -12.4345,
+									  -49.3977 0 -12.6832,
+									  -49.6057 0 -6.26666,
+									  -50.5979 0 -6.39199,
+									  -50 0 4.37114e-06,
+									  -51 0 4.45856e-06,
+									  -49.6057 0 6.26666,
+									  -50.5979 0 6.39199,
+									  -48.4292 0 12.4345,
+									  -49.3977 0 12.6832,
+									  -46.4888 0 18.4062,
+									  -47.4186 0 18.7744,
+									  -43.8153 0 24.0877,
+									  -44.6916 0 24.5694,
+									  -40.4508 0 29.3893,
+									  -41.2599 0 29.9771,
+									  -36.4484 0 34.2274,
+									  -37.1774 0 34.9119,
+									  -31.8712 0 38.5257,
+									  -32.5086 0 39.2962,
+									  -26.7913 0 42.2164,
+									  -27.3272 0 43.0607,
+									  -21.289 0 45.2413,
+									  -21.7148 0 46.1462,
+									  -15.4509 0 47.5528,
+									  -15.7599 0 48.5039,
+									  -9.36905 0 49.1144,
+									  -9.55643 0 50.0967,
+									  -3.13953 0 49.9013,
+									  -3.20232 0 50.8994,
+									  3.13953 0 49.9013,
+									  3.20232 0 50.8994,
+									  9.36905 0 49.1144,
+									  9.55643 0 50.0967,
+									  15.4509 0 47.5528,
+									  15.7599 0 48.5039,
+									  21.289 0 45.2413,
+									  21.7148 0 46.1462,
+									  26.7913 0 42.2164,
+									  27.3272 0 43.0607,
+									  31.8712 0 38.5257,
+									  32.5086 0 39.2962,
+									  36.4484 0 34.2274,
+									  37.1774 0 34.9119,
+									  40.4508 0 29.3893,
+									  41.2599 0 29.9771,
+									  43.8153 0 24.0877,
+									  44.6916 0 24.5694,
+									  46.4888 0 18.4062,
+									  47.4186 0 18.7744,
+									  48.4292 0 12.4345,
+									  49.3977 0 12.6832,
+									  49.6057 0 6.26666,
+									  50.5979 0 6.39199 ]
+							      }
+
+							      color	Color {
+								color	[ 0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.629834 0.425433 0.211269,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959,
+									  0.209945 0.0989186 0.0365959 ]
+							      }
+
+							      coordIndex	[ 0, 1, 2, -1, 3, 2, 1, -1,
+								        3, 4, 2, -1, 3, 5, 4, -1,
+								        6, 4, 5, -1, 6, 5, 7, -1,
+								        6, 7, 8, -1, 9, 8, 7, -1,
+								        9, 10, 8, -1, 9, 11, 10, -1,
+								        12, 10, 11, -1, 12, 11, 13, -1,
+								        12, 13, 14, -1, 15, 14, 13, -1,
+								        15, 16, 14, -1, 15, 17, 16, -1,
+								        18, 16, 17, -1, 18, 17, 19, -1,
+								        18, 19, 20, -1, 21, 20, 19, -1,
+								        21, 22, 20, -1, 21, 23, 22, -1,
+								        24, 22, 23, -1, 24, 23, 25, -1,
+								        24, 25, 26, -1, 27, 26, 25, -1,
+								        27, 28, 26, -1, 27, 29, 28, -1,
+								        30, 28, 29, -1, 30, 29, 31, -1,
+								        30, 31, 32, -1, 33, 32, 31, -1,
+								        33, 34, 32, -1, 33, 35, 34, -1,
+								        36, 34, 35, -1, 36, 35, 37, -1,
+								        36, 37, 38, -1, 39, 38, 37, -1,
+								        39, 40, 38, -1, 39, 41, 40, -1,
+								        42, 40, 41, -1, 42, 41, 43, -1,
+								        42, 43, 44, -1, 45, 44, 43, -1,
+								        45, 46, 44, -1, 45, 47, 46, -1,
+								        48, 46, 47, -1, 48, 47, 49, -1,
+								        48, 49, 50, -1, 51, 50, 49, -1,
+								        51, 52, 50, -1, 51, 53, 52, -1,
+								        54, 52, 53, -1, 54, 53, 55, -1,
+								        54, 55, 56, -1, 57, 56, 55, -1,
+								        57, 58, 56, -1, 57, 59, 58, -1,
+								        60, 58, 59, -1, 60, 59, 61, -1,
+								        60, 61, 62, -1, 63, 62, 61, -1,
+								        63, 64, 62, -1, 63, 65, 64, -1,
+								        66, 64, 65, -1, 66, 65, 67, -1,
+								        66, 67, 68, -1, 69, 68, 67, -1,
+								        69, 70, 68, -1, 69, 71, 70, -1,
+								        72, 70, 71, -1, 72, 71, 73, -1,
+								        72, 73, 74, -1, 75, 74, 73, -1,
+								        75, 76, 74, -1, 75, 77, 76, -1,
+								        78, 76, 77, -1, 78, 77, 79, -1,
+								        78, 79, 80, -1, 81, 80, 79, -1,
+								        81, 82, 80, -1, 81, 83, 82, -1,
+								        84, 82, 83, -1, 84, 83, 85, -1,
+								        84, 85, 86, -1, 87, 86, 85, -1,
+								        87, 88, 86, -1, 87, 89, 88, -1,
+								        90, 88, 89, -1, 90, 89, 91, -1,
+								        90, 91, 92, -1, 93, 92, 91, -1,
+								        93, 94, 92, -1, 93, 95, 94, -1,
+								        96, 94, 95, -1, 96, 95, 97, -1,
+								        96, 97, 98, -1, 99, 98, 97, -1,
+								        99, 0, 98, -1, 99, 1, 0, -1 ]
+							      colorIndex	[ 12, 112, 11, -1, 113, 10, 114, -1,
+								        115, 8, 9, -1, 116, 117, 7, -1,
+								        5, 6, 118, -1, 4, 119, 120, -1,
+								        3, 121, 2, -1, 124, 1, 122, -1,
+								        123, 132, 131, -1, 129, 128, 133, -1,
+								        135, 134, 127, -1, 136, 126, 125, -1,
+								        137, 130, 138, -1, 155, 140, 153, -1,
+								        154, 152, 139, -1, 156, 157, 151, -1,
+								        149, 150, 158, -1, 148, 159, 160, -1,
+								        147, 161, 146, -1, 164, 145, 162, -1,
+								        165, 142, 144, -1, 163, 181, 143, -1,
+								        182, 141, 180, -1, 183, 179, 178, -1,
+								        184, 176, 185, -1, 175, 186, 177, -1,
+								        174, 188, 187, -1, 173, 172, 189, -1,
+								        191, 190, 170, -1, 192, 171, 169, -1,
+								        193, 167, 194, -1, 166, 195, 168, -1,
+								        232, 197, 196, -1, 233, 234, 208, -1,
+								        199, 198, 235, -1, 200, 236, 237, -1,
+								        201, 238, 202, -1, 240, 207, 239, -1,
+								        241, 204, 203, -1, 242, 243, 205, -1,
+								        209, 206, 245, -1, 231, 244, 246, -1,
+								        210, 247, 211, -1, 249, 230, 248, -1,
+								        250, 213, 212, -1, 251, 252, 229, -1,
+								        228, 214, 253, -1, 215, 254, 216, -1,
+								        217, 255, 218, -1, 256, 219, 257, -1,
+								        273, 221, 220, -1, 272, 271, 227, -1,
+								        223, 222, 269, -1, 224, 270, 267, -1,
+								        225, 268, 226, -1, 265, 275, 266, -1,
+								        264, 276, 274, -1, 263, 262, 278, -1,
+								        279, 277, 261, -1, 281, 260, 259, -1,
+								        280, 258, 288, -1, 290, 287, 289, -1,
+								        291, 285, 286, -1, 292, 293, 0, -1,
+								        283, 284, 294, -1, 282, 295, 296, -1,
+								        62, 298, 63, -1, 299, 61, 297, -1,
+								        68, 59, 60, -1, 67, 66, 58, -1,
+								        56, 57, 65, -1, 55, 64, 69, -1,
+								        54, 70, 53, -1, 72, 52, 71, -1,
+								        73, 50, 51, -1, 74, 81, 49, -1,
+								        47, 48, 80, -1, 46, 79, 78, -1,
+								        45, 77, 44, -1, 75, 43, 76, -1,
+								        82, 41, 42, -1, 83, 84, 40, -1,
+								        38, 39, 85, -1, 37, 86, 87, -1,
+								        36, 88, 35, -1, 95, 34, 89, -1,
+								        94, 31, 33, -1, 93, 91, 32, -1,
+								        29, 30, 92, -1, 28, 90, 97, -1,
+								        27, 96, 26, -1, 99, 25, 98, -1,
+								        101, 23, 24, -1, 100, 102, 22, -1,
+								        20, 21, 103, -1, 19, 104, 109, -1,
+								        18, 108, 17, -1, 106, 16, 107, -1,
+								        105, 13, 15, -1, 111, 110, 14, -1 ]
+							      solid	FALSE
+							      creaseAngle	0.5
+							    }
+
+							  }
+
+							}
+
+							translation	-0.0918288 -0.000427008 0.114016
+							rotation	0 0 1  0
+							scale	1.84624 1.84624 1.84624
+						      }
+						    ]
+						  }
+
+						  translation	0 0 0
+						  scale	1.98 1.98 1.98
+						}
+
+						scale	3 3 3
+					      }
+
+					      collide	FALSE
+					    }
+					    DEF LITTLE-TIMER TimeSensor {
+					      cycleInterval	101
+					      loop	TRUE
+					      startTime	0
+					      stopTime	0
+					    }
+					    DEF MED-TIMER TimeSensor {
+					      cycleInterval	200
+					      loop	TRUE
+					      startTime	0
+					      stopTime	0
+					    }
+					    DEF BIG-TIMER TimeSensor {
+					      cycleInterval	250
+					      loop	TRUE
+					      startTime	0
+					      stopTime	0
+					    }
+					    DEF LITTLE-ENGINE OrientationInterpolator {
+					      key	[ 0, 0.5, 1 ]
+					      keyValue	[ 0 0 1  0,
+						        0 1 0  3.14,
+						        0 1 0  6.28002 ]
+					    }
+					    DEF MED-ENGINE OrientationInterpolator {
+					      key	[ 0, 0.5, 1 ]
+					      keyValue	[ 0 0 1  0,
+						        0 1 0  3.14,
+						        0 1 0  6.28002 ]
+					    }
+					    DEF BIG-ENGINE OrientationInterpolator {
+					      key	[ 0, 0.5, 1 ]
+					      keyValue	[ 0 0 1  0,
+						        0 1 0  3.14,
+						        0 1 0  6.28002 ]
+					    }
+					  ]
+					}
+
+				      }
+					DEF SAT_SND SND_RES {
+					  audioSource	"Sounds/planet1Loop.mpa"
+					  midiSource	"Sounds/Saturn.mid"
+					  maxFront 10000
+					  maxBack  10000
+					}
+				      DEF saturn_approach Viewpoint {
+					position	2033.26 5414.13 7014.17
+					orientation	-0.755265 0.463212 0.463691  0.783792
+					fieldOfView	0.5
+					description	"saturn_approach"
+				      }
+				      DEF inside_ring Viewpoint {
+					position	782.049 247.496 417.338
+					orientation	-0.471191 0.872026 -0.132475  0.813624
+					fieldOfView	0.5
+					description	"inside_ring"
+				      }
+				      DEF saturn_depart Viewpoint {
+					position	-6171.37 4257.53 2624.23
+					orientation	-0.479449 -0.870474 -0.111372  1.2381
+					fieldOfView	0.5
+					description	"saturn_depart"
+				      }
+				    ]
+				    translation	-8867 0 0
+				    rotation	0 0 -1  0.466
+				  }
+
+				  rotation	0 1 0  0.6
+				}
+				DEF satring Transform {
+				  children	Group {
+				    children	Group {
+				      children	Shape {
+					appearance	Appearance {
+					  material	Material {
+					    emissiveColor	0.38 0.28 0
+					  }
+
+					}
+
+					geometry	USE ringLine
+
+				      }
+
+				    }
+
+				  }
+
+				  scale	8867 1 8867
+				}
+			      ]
+			      translation	491 0 0
+			      rotation	0 0 1  0.0434002
+			    }
+			    DEF ura Transform {
+			      children	[
+				DEF urrinit Transform {
+				  children	DEF uranus Transform {
+				    children	[
+				      Transform {
+					children	DEF URANUS-PROX-SENSOR ProximitySensor {
+					  center	0.114136 -0.910385 -2.82001
+					  size	4500 4500 4500
+					}
+
+					center	0 0 0
+				      }
+				      DEF URANUS-ANCHOR Anchor {
+					children	DEF URANUS-ROOT Transform {
+					  children	DEF URANUS-XFORM Transform {
+					    children	[
+					      DEF URANUS-TIMER TimeSensor {
+						cycleInterval	24
+						loop	TRUE
+						startTime	0
+						stopTime	0
+					      }
+					      DEF URANUS-ENGINE OrientationInterpolator {
+						key	[ 0, 0.5, 1 ]
+						keyValue	[ 0 0 1  0,
+							  0 1 0  3.14,
+							  0 1 0  6.28002 ]
+					      }
+					      LOD {
+						center	0 0 0
+						range	[ 12000, 45000 ]
+						level	[
+						  Group {
+						    children	Transform {
+						      children	Transform {
+							children	Transform {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	Material {
+								diffuseColor	1 1 1
+							      }
+
+							      texture	ImageTexture {
+								url	"uranusTexture.jpg"
+							      }
+
+							    }
+
+							    geometry	Sphere {
+							      radius	1
+							    }
+
+							  }
+
+							  scale	31.6 31.6 31.6
+							}
+
+							scale	3 3 3
+						      }
+
+						      rotation	0 1 0  4.80507
+						    }
+
+						  }
+						  Transform {
+						    children	Transform {
+						      children	Shape {
+							appearance	Appearance {
+							  material	DEF _DefMat Material {
+							    diffuseColor	0.0977064 0.578792 1
+							  }
+
+							}
+
+							geometry	USE smallSphere
+
+						      }
+
+						      scale	31.6 31.6 31.6
+						    }
+
+						    scale	3 3 3
+						  }
+						  Group {
+						    children	[
+						    ]
+						  }
+						]
+					      }
+					    ]
+					    rotation	0 0 1  0
+					  }
+
+					}
+
+					url	"Uranus/HTML/index.html"
+					parameter	"target=secondary"
+				      }
+				      LOD {
+					center	0 0 0
+					range	45000
+					level	Group {
+					  children	[
+					    Transform {
+					      children	Transform {
+						children	Transform {
+						  children	DEF BLUE-RING Shape {
+						    appearance	Appearance {
+						      material	DEF _DefMat Material {
+							emissiveColor	0.48 0.05 0.09
+						      }
+
+						    }
+
+						    geometry	USE ringLine
+
+						  }
+
+						  scale	1.84 1 1.84
+						}
+
+						scale	31.6 1 31.6
+					      }
+
+					      scale	3 3 3
+					    }
+					    Transform {
+					      children	Transform {
+						children	Transform {
+						  children	DEF GREEN-RING Shape {
+						    appearance	Appearance {
+						      material	DEF _DefMat Material {
+							emissiveColor	0 0.3 0.12
+						      }
+
+						    }
+
+						    geometry	USE ringLine
+
+						  }
+
+						  scale	1.64 1 1.64
+						}
+
+						scale	31.6 1 31.6
+					      }
+
+					      scale	3 3 3
+					    }
+					    Transform {
+					      children	Transform {
+						children	Transform {
+						  children	USE GREEN-RING
+
+						  scale	1.55 1 1.55
+						}
+
+						scale	31.6 1 31.6
+					      }
+
+					      scale	3 3 3
+					    }
+					    Transform {
+					      children	Transform {
+						children	Transform {
+						  children	USE BLUE-RING
+
+						  scale	1.44 1 1.44
+						}
+
+						scale	31.6 1 31.6
+					      }
+
+					      scale	3 3 3
+					    }
+					  ]
+					}
+
+				      }
+					DEF URA_SND SND_RES {
+					  audioSource	"Sounds/planet6Loop.mpa"
+					  midiSource	"Sounds/Uranus.mid"
+					  maxFront 10000
+					  maxBack  10000
+					}
+				      DEF uranus_approach Viewpoint {
+					position	2546.85 -1128.78 903.384
+					orientation	0.259363 -0.66735 0.698122  4.35589
+					fieldOfView	0.5
+					description	"uranus_approach"
+				      }
+				      DEF uranusview Viewpoint {
+					position	-503.843 -330.561 642.49
+					orientation	-0.384665 -0.0640849 0.920829  3.90131
+					fieldOfView	0.5
+					description	"uranus"
+				      }
+				      DEF uranus2 Viewpoint {
+					position	-348.345 -6.95312 111.663
+					orientation	-0.566524 0.0692753 0.821129  3.34175
+					fieldOfView	0.5
+					description	"uranus2"
+				      }
+				      DEF uranus_depart Viewpoint {
+					position	2786.76 170.238 1700.27
+					orientation	0.446547 -0.148242 0.882394  3.57752
+					fieldOfView	0.5
+					description	"uranus_depart"
+				      }
+				    ]
+				    translation	-17840 0 0
+				    rotation	0 0 1  1.432
+				    scale	1 1 1
+				  }
+
+				  rotation	0 1 0  0.65
+				}
+				DEF urring Transform {
+				  children	Group {
+				    children	Group {
+				      children	Shape {
+					appearance	Appearance {
+					  material	Material {
+					    emissiveColor	0 0.2 0.3
+					  }
+
+					}
+
+					geometry	USE ringLine
+
+				      }
+
+				    }
+
+				  }
+
+				  scale	17840 1 17840
+				}
+			      ]
+			      translation	850 0 0
+			      rotation	0 0 1  0.01339
+			    }
+			    DEF nep Transform {
+			      children	[
+				DEF neprinit Transform {
+				  children	DEF neptune Transform {
+				    children	[
+				      Transform {
+					children	DEF NEPTUNE-PROX-SENSOR ProximitySensor {
+					  center	-0.412537 0.325592 1.16125
+					  size	2340 2340 2340
+					}
+
+					center	0 0 0
+				      }
+				      DEF NEPTUNE-ANCHOR Anchor {
+					children	DEF NEPTUNE-ROOT Transform {
+					  children	DEF NEPTUNE-XFORM Transform {
+					    children	[
+					      DEF NEPTUNE-TIMER TimeSensor {
+						cycleInterval	17.7
+						loop	TRUE
+						startTime	0
+						stopTime	0
+					      }
+					      DEF NEPTUNE-ENGINE OrientationInterpolator {
+						key	[ 0, 0.5, 1 ]
+						keyValue	[ 0 0 1  0,
+							  0 1 0  3.14,
+							  0 1 0  6.28002 ]
+					      }
+					      LOD {
+						center	0 0 0
+						range	[ 2000, 12000, 45000 ]
+						level	[
+						  Group {
+						    children	Transform {
+						      children	Transform {
+							children	Transform {
+							  children	Shape {
+							    appearance	Appearance {
+							      material	Material {
+								diffuseColor	1 1 1
+							      }
+
+							      texture	ImageTexture {
+								url	"neptuneTexture.jpg"
+							      }
+
+							    }
+
+							    geometry	Sphere {
+							      radius	1
+							    }
+
+							  }
+
+							  scale	30.2 30.2 30.2
+							}
+
+							scale	3 3 3
+						      }
+
+						      rotation	0 1 0  4.80507
+						    }
+
+						  }
+						  Transform {
+						    children	Transform {
+						      children	Shape {
+							appearance	Appearance {
+							  material	DEF _DefMat Material {
+							    diffuseColor	0.0219637 0.264048 0.540816
+							  }
+
+							}
+
+							geometry	USE smallSphere
+
+						      }
+
+						      scale	30.2 30.2 30.2
+						    }
+
+						    scale	3 3 3
+						  }
+						  Group {
+						    children	[
+						    ]
+						  }
+						]
+					      }
+					    ]
+					    rotation	0 0 1  0
+					  }
+
+					}
+
+					url	"Neptune/HTML/index.html"
+					parameter	"target=secondary"
+				      }
+				      LOD {
+					center	0 0 0
+					range	45000
+					level	Group {
+					  children	Transform {
+					    children	Transform {
+					      children	Shape {
+						appearance	Appearance {
+						  material	DEF _DefMat Material {
+						    diffuseColor	0 0.2 0.3
+						    emissiveColor	0 0.2 0.3
+						  }
+
+						}
+
+						geometry	USE ringLine
+
+					      }
+
+					      scale	68.7 68.7 68.7
+					    }
+
+					    scale	3 3 3
+					  }
+
+					}
+
+				      }
+					DEF NEP_SND SND_RES {
+					  audioSource	"Sounds/atmo30Loop.mpa"
+					  midiSource	"Sounds/Neptune.mid"
+					  maxFront 10000
+					  maxBack  10000
+					}
+				      DEF neptune_approach Viewpoint {
+					position	705.707 612.637 1316.58
+					orientation	-0.66684 0.743472 -0.0507272  0.618101
+					fieldOfView	0.5
+					description	"neptune approach"
+				      }
+				      DEF neptune1 Viewpoint {
+					position	531.621 119.101 368.557
+					orientation	-0.096398 0.974759 0.201374  0.993096
+					fieldOfView	0.5
+					description	"neptune"
+				      }
+				      DEF neptune_closeup Viewpoint {
+					position	162.43 240.474 264.283
+					orientation	-0.510969 0.745014 0.428795  1.15103
+					fieldOfView	0.5
+					description	"neptune closeup"
+				      }
+				    ]
+				    translation	-27944 0 0
+				    rotation	0 0 -1  0.506
+				  }
+
+				  rotation	0 1 0  0.51
+				}
+				DEF nepring Transform {
+				  children	Group {
+				    children	Group {
+				      children	Shape {
+					appearance	Appearance {
+					  material	Material {
+					    emissiveColor	0.005 0.08 0.4
+					  }
+
+					}
+
+					geometry	USE ringLine
+
+				      }
+
+				    }
+
+				  }
+
+				  scale	27944 1 27944
+				}
+			      ]
+			      rotation	0 0 1  0.0309975
+			      scale	1 1 1
+			    }
+			    DEF plu Transform {
+			      children	[
+				DEF pluto Transform {
+				  children	[
+				    Transform {
+				      children	DEF PLUTO-PROX-SENSOR ProximitySensor {
+					center	0 0 0
+					size	240 240 240
+				      }
+
+				      center	0 0 0
+				    }
+				    DEF PLUTO-ANCHOR Anchor {
+				      children	DEF PLUTO-ROOT Transform {
+					children	DEF PLUTO-XFORM Transform {
+					  children	[
+					    DEF PLUTO-TIMER TimeSensor {
+					      cycleInterval	6.4
+					      loop	TRUE
+					      startTime	0
+					      stopTime	0
+					    }
+					    DEF PLUTO-ENGINE OrientationInterpolator {
+					      key	[ 0, 0.5, 1 ]
+					      keyValue	[ 0 0 1  0,
+						        0 1 0  3.14,
+						        0 1 0  6.28002 ]
+					    }
+					    LOD {
+					      center	0 0 0
+					      range	[ 600, 2300 ]
+					      level	[
+						Group {
+						  children	Transform {
+						    children	Transform {
+						      children	Transform {
+							children	Shape {
+							  appearance	Appearance {
+							    material	Material {
+							      diffuseColor	1 1 1
+							    }
+
+							    texture	ImageTexture {
+							      url	"plutoTexture.jpg"
+							    }
+
+							  }
+
+							  geometry	Sphere {
+							    radius	1
+							  }
+
+							}
+
+							scale	1.42 1.42 1.42
+						      }
+
+						      scale	3 3 3
+						    }
+
+						    rotation	0 1 0  4.80507
+						  }
+
+						}
+						Transform {
+						  children	Transform {
+						    children	Shape {
+						      appearance	Appearance {
+							material	DEF _DefMat Material {
+							  diffuseColor	0.333602 0.359896 0.438776
+							}
+
+						      }
+
+						      geometry	USE smallSphere
+
+						    }
+
+						    scale	1.42 1.42 1.42
+						  }
+
+						  scale	3 3 3
+						}
+						Group {
+						  children	[
+						  ]
+						}
+					      ]
+					    }
+					  ]
+					  rotation	0 0 1  0
+					}
+
+				      }
+
+				      url	"Pluto/HTML/index.html"
+				      parameter	"target=secondary"
+				    }
+				    DEF PLU_SND SND_RES {
+				      audioSource	"Sounds/sci7Loop.mpa"
+				      midiSource	"Sounds/Pluto.mid"
+				      maxFront 10000
+				      maxBack  10000
+				    }
+				    DEF pluto1 Viewpoint {
+				      position	77.7812 -41.4395 160.536
+				      orientation	-0.0246498 0.442612 -0.896374  1.18949
+				      fieldOfView	0.5
+				      description	"pluto1"
+				    }
+				    DEF pluto2 Viewpoint {
+				      position	40.9004 -10.9629 -5.02976
+				      orientation	0.47202 0.810354 0.347164  1.87826
+				      fieldOfView	0.5
+				      description	"pluto2"
+				    }
+				  ]
+				  translation	-36560 0 0
+				  rotation	0 0 1  1.081
+				}
+				DEF pluring Transform {
+				  children	Group {
+				    children	Group {
+				      children	Shape {
+					appearance	Appearance {
+					  material	Material {
+					    emissiveColor	0.08 0 0.46
+					  }
+
+					}
+
+					geometry	USE ringLine
+
+				      }
+
+				    }
+
+				  }
+
+				  scale	36560 1 36560
+				}
+			      ]
+			      translation	9000 2800 0
+			      rotation	0 0 1  0.2992
+			    }
+			  ]
+			}
+			DEF OutCameras Group {
+			  children	[
+			    DEF bonvoyage2 Viewpoint {
+			      position	-8187.66 3613.15 13942.7
+			      orientation	-0.896 0.443 0.019  0.348
+			      fieldOfView	0.785398
+			      description	"bonvoyage2"
+			    }
+			    DEF departing Viewpoint {
+			      position	-37666.8 -18396.6 -12320.6
+			      orientation	-0.0007 0.924 -0.382  4.227
+			      fieldOfView	0.959931
+			      description	"departing"
+			    }
+			  ]
+			}
+		      ]
+		      collide	FALSE
+		    }
+		  ]
+		}
+	      ]
+	    }
+	    DEF Light1 PointLight { }
+	  ]
+	}
+      ]
+    }
+  ]
+}
+ROUTE lightScript.headlights TO nav.headlight
+ROUTE lightScript.headlights TO nearNav.headlight
+ROUTE lightScript.headlights TO farNav.headlight
+ROUTE lightScript.headlights TO flyNav.headlight
+
+ROUTE innerSolarSystem.isBound TO vpScript.ssBind
+ROUTE mercury_approach.isBound TO vpScript.merBind
+ROUTE venus_approach.isBound TO vpScript.venBind
+ROUTE earth_approach.isBound TO vpScript.earBind
+ROUTE earth1.isBound TO vpScript.earBind
+ROUTE earth_depart1.isBound TO vpScript.earBind
+ROUTE pathView.isBound TO vpScript.pfBind
+ROUTE mars_approach.isBound TO vpScript.marBind
+ROUTE marsview.isBound TO vpScript.marBind
+ROUTE mars_depart.isBound TO vpScript.marBind
+ROUTE jupiter_approach.isBound TO vpScript.jupBind
+ROUTE jupiter_approach2.isBound TO vpScript.jupBind
+ROUTE jupiterview.isBound TO vpScript.jupBind
+ROUTE jupiter_depart.isBound TO vpScript.jupBind
+ROUTE saturn_approach.isBound TO vpScript.satBind
+ROUTE inside_ring.isBound TO vpScript.satBind
+ROUTE saturn_depart.isBound TO vpScript.satBind
+ROUTE uranus_approach.isBound TO vpScript.uraBind
+ROUTE uranusview.isBound TO vpScript.uraBind
+ROUTE uranus2.isBound TO vpScript.uraBind
+ROUTE uranus_depart.isBound TO vpScript.uraBind
+ROUTE neptune_approach.isBound TO vpScript.nepBind
+ROUTE neptune1.isBound TO vpScript.nepBind
+ROUTE neptune_closeup.isBound TO vpScript.nepBind
+ROUTE pluto1.isBound TO vpScript.pluBind
+ROUTE pluto2.isBound TO vpScript.pluBind
+
+ROUTE triggerTimer.isActive TO vpScript.triggerActive
+ROUTE releaseTimer.isActive TO vpScript.releaseActive
+ROUTE pathTimer.isActive TO vpScript.pathActive
+ROUTE entry.isBound TO vpScript.ssBind
+ROUTE innerSolarSystem.isBound TO nav.set_bind
+ROUTE entry.isBound TO farNav.set_bind
+ROUTE pathView.isBound TO flyNav.set_bind
+ROUTE vpScript.setMarBind TO mars_approach.set_bind
+#ROUTE marrotInterp.value_changed TO d1.SFRotation
+#ROUTE vpScript.ssStop TO d2.SFTime
+#ROUTE marflyInterp.value_changed TO d3.SFRotation
+ROUTE vpScript.orbitEnable TO merrotTime.set_enabled
+ROUTE vpScript.orbitStart TO merrotTime.set_startTime
+ROUTE vpScript.orbitStop TO merrotTime.set_stopTime
+ROUTE merrotTime.fraction_changed TO merrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO merrotInterp.set_fraction
+ROUTE MERCURY-PROX-SENSOR.enterTime TO MERCURY-TIMER.set_startTime
+ROUTE MERCURY-PROX-SENSOR.exitTime TO MERCURY-TIMER.set_stopTime
+ROUTE MERCURY-TIMER.fraction_changed TO MERCURY-ENGINE.set_fraction
+ROUTE MERCURY-ENGINE.value_changed TO MERCURY-XFORM.set_rotation
+ROUTE merrotInterp.value_changed TO merrot.set_rotation
+ROUTE ringScript.coords TO ringCoords.set_point
+ROUTE ringScript.indexes TO ringLine.set_coordIndex
+ROUTE vpScript.orbitEnable TO venrotTime.set_enabled
+ROUTE vpScript.orbitStart TO venrotTime.set_startTime
+ROUTE vpScript.orbitStop TO venrotTime.set_stopTime
+ROUTE venrotTime.fraction_changed TO venrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO venrotInterp.set_fraction
+ROUTE VENUS-PROX-SENSOR.enterTime TO VENUS-TIMER.set_startTime
+ROUTE VENUS-PROX-SENSOR.exitTime TO VENUS-TIMER.set_stopTime
+ROUTE VENUS-TIMER.fraction_changed TO VENUS-ENGINE.set_fraction
+ROUTE VENUS-ENGINE.value_changed TO VENUS-XFORM.set_rotation
+ROUTE venrotInterp.value_changed TO venrot.set_rotation
+ROUTE vpScript.orbitEnable TO earrotTime.set_enabled
+ROUTE vpScript.orbitStart TO earrotTime.set_startTime
+ROUTE vpScript.orbitStop TO earrotTime.set_stopTime
+ROUTE earrotTime.fraction_changed TO earrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO earrotInterp.set_fraction
+ROUTE EARTH-VIZ-SENSOR.enterTime TO EARTH-PERF-LOGIC.vizInTime
+ROUTE EARTH-VIZ-SENSOR.exitTime TO EARTH-PERF-LOGIC.vizOutTime
+ROUTE EARTH-PROX-SENSOR.enterTime TO EARTH-PERF-LOGIC.proxInTime
+ROUTE EARTH-PROX-SENSOR.exitTime TO EARTH-PERF-LOGIC.proxOutTime
+ROUTE EARTH-PERF-LOGIC.startTime TO EARTH-TIMER.set_startTime
+ROUTE EARTH-PERF-LOGIC.stopTime TO EARTH-TIMER.set_stopTime
+ROUTE EARTH-TIMER.fraction_changed TO EARTH-ENGINE.set_fraction
+ROUTE EARTH-ENGINE.value_changed TO EARTH-XFORM.set_rotation
+ROUTE moorotTime.fraction_changed TO moorotInterp.set_fraction
+ROUTE EARTH-PERF-LOGIC.startTime TO MOON-TIMER.set_startTime
+ROUTE EARTH-PERF-LOGIC.stopTime TO MOON-TIMER.set_stopTime
+ROUTE MOON-TIMER.fraction_changed TO MOON-ENGINE.set_fraction
+ROUTE MOON-ENGINE.value_changed TO MOON-XFORM.set_rotation
+ROUTE moorotInterp.value_changed TO moorot.set_rotation
+ROUTE earrotInterp.value_changed TO earrot.set_rotation
+ROUTE pathScript.keys TO pathInterp.set_key
+ROUTE pathTimer.fraction_changed TO pathInterp.set_fraction
+ROUTE pathScript.coords TO pathInterp.set_keyValue
+ROUTE vpScript.triggerTime TO triggerTimer.set_startTime
+ROUTE vpScript.releaseTime TO releaseTimer.set_startTime
+ROUTE vpScript.flyTime TO pathTimer.set_startTime
+ROUTE pathScript.coords TO pathCoords.set_point
+ROUTE pathScript.indexes TO pathLine.set_coordIndex
+ROUTE pathTimer.startTime_changed TO pfrotTimer.set_startTime
+ROUTE pathTimer.stopTime_changed TO pfrotTimer.set_stopTime
+ROUTE pathTimer.fraction_changed TO pathPosInterp.set_fraction
+ROUTE pathTimer.fraction_changed TO pathOrInterp.set_fraction
+ROUTE pathTimer.fraction_changed TO pathLightInterp.set_fraction
+ROUTE vpScript.flyFract TO pathPosInterp.set_fraction
+ROUTE vpScript.flyFract TO pathOrInterp.set_fraction
+ROUTE vpScript.flyFract TO pathLightInterp.set_fraction
+ROUTE pathPosInterp.value_changed TO pathView.set_position
+ROUTE pathOrInterp.value_changed TO pathView.set_orientation
+ROUTE pathLightInterp.value_changed TO pathLight.set_intensity
+ROUTE pathInterp.value_changed TO pfGroup.set_translation
+ROUTE vpScript.marzorbitEnable TO marrotTime.set_enabled
+ROUTE vpScript.marzorbitStart TO marrotTime.set_startTime
+ROUTE vpScript.marzorbitStop TO marrotTime.set_stopTime
+ROUTE marrotTime.fraction_changed TO marrotInterp.set_fraction
+ROUTE vpScript.orbitFract TO marrotInterp.set_fraction
+ROUTE pathTimer.fraction_changed TO marflyInterp.set_fraction
+ROUTE MARS-PROX-SENSOR.enterTime TO MARS-TIMER.set_startTime
+ROUTE MARS-PROX-SENSOR.exitTime TO MARS-TIMER.set_stopTime
+ROUTE MARS-TIMER.fraction_changed TO MARS-ENGINE.set_fraction
+ROUTE MARS-ENGINE.value_changed TO MARS-XFORM.set_rotation
+ROUTE MARS-PROX-SENSOR.enterTime TO PHOBOS-TIMER.set_startTime
+ROUTE MARS-PROX-SENSOR.exitTime TO PHOBOS-TIMER.set_stopTime
+ROUTE PHOBOS-TIMER.fraction_changed TO PHOBOS-ENGINE.set_fraction
+ROUTE PHOBOS-ENGINE.value_changed TO PHOBOS-XFORM.set_rotation
+ROUTE MARS-PROX-SENSOR.enterTime TO DEIMOS-TIMER.set_startTime
+ROUTE MARS-PROX-SENSOR.exitTime TO DEIMOS-TIMER.set_stopTime
+ROUTE DEIMOS-TIMER.fraction_changed TO DEIMOS-ENGINE.set_fraction
+ROUTE DEIMOS-ENGINE.value_changed TO DEIMOS-XFORM.set_rotation
+ROUTE marrotInterp.value_changed TO marrot.set_rotation
+ROUTE marflyInterp.value_changed TO marrot.set_rotation
+ROUTE JUPITER-VIZ-SENSOR.enterTime TO JUPITER-PERF-LOGIC.vizInTime
+ROUTE JUPITER-VIZ-SENSOR.exitTime TO JUPITER-PERF-LOGIC.vizOutTime
+ROUTE JUPITER-PROX-SENSOR.enterTime TO JUPITER-PERF-LOGIC.proxInTime
+ROUTE JUPITER-PROX-SENSOR.exitTime TO JUPITER-PERF-LOGIC.proxOutTime
+ROUTE JUPITER-PERF-LOGIC.startTime TO JUPITER-TIMER.set_startTime
+ROUTE JUPITER-PERF-LOGIC.stopTime TO JUPITER-TIMER.set_stopTime
+ROUTE JUPITER-TIMER.fraction_changed TO JUPITER-ENGINE.set_fraction
+ROUTE JUPITER-ENGINE.value_changed TO JUPITER-XFORM.set_rotation
+ROUTE SATURN-PROX-SENSOR.enterTime TO SATURN-TIMER.set_startTime
+ROUTE SATURN-PROX-SENSOR.exitTime TO SATURN-TIMER.set_stopTime
+ROUTE SATURN-TIMER.fraction_changed TO SATURN-ENGINE.set_fraction
+ROUTE SATURN-ENGINE.value_changed TO SATURN-XFORM.set_rotation
+ROUTE SATURN-PROX-SENSOR.enterTime TO LITTLE-TIMER.set_startTime
+ROUTE SATURN-PROX-SENSOR.exitTime TO LITTLE-TIMER.set_stopTime
+ROUTE SATURN-PROX-SENSOR.enterTime TO MED-TIMER.set_startTime
+ROUTE SATURN-PROX-SENSOR.exitTime TO MED-TIMER.set_stopTime
+ROUTE SATURN-PROX-SENSOR.enterTime TO BIG-TIMER.set_startTime
+ROUTE SATURN-PROX-SENSOR.exitTime TO BIG-TIMER.set_stopTime
+ROUTE LITTLE-TIMER.fraction_changed TO LITTLE-ENGINE.set_fraction
+ROUTE MED-TIMER.fraction_changed TO MED-ENGINE.set_fraction
+ROUTE BIG-TIMER.fraction_changed TO BIG-ENGINE.set_fraction
+ROUTE URANUS-PROX-SENSOR.enterTime TO URANUS-TIMER.set_startTime
+ROUTE URANUS-PROX-SENSOR.exitTime TO URANUS-TIMER.set_stopTime
+ROUTE URANUS-TIMER.fraction_changed TO URANUS-ENGINE.set_fraction
+ROUTE URANUS-ENGINE.value_changed TO URANUS-XFORM.set_rotation
+ROUTE NEPTUNE-PROX-SENSOR.enterTime TO NEPTUNE-TIMER.set_startTime
+ROUTE NEPTUNE-PROX-SENSOR.exitTime TO NEPTUNE-TIMER.set_stopTime
+ROUTE NEPTUNE-TIMER.fraction_changed TO NEPTUNE-ENGINE.set_fraction
+ROUTE NEPTUNE-ENGINE.value_changed TO NEPTUNE-XFORM.set_rotation
+ROUTE PLUTO-PROX-SENSOR.enterTime TO PLUTO-TIMER.set_startTime
+ROUTE PLUTO-PROX-SENSOR.exitTime TO PLUTO-TIMER.set_stopTime
+ROUTE PLUTO-TIMER.fraction_changed TO PLUTO-ENGINE.set_fraction
+ROUTE PLUTO-ENGINE.value_changed TO PLUTO-XFORM.set_rotation
+ROUTE vpScript.ssStart TO SUN_SND.set_start
+ROUTE vpScript.ssStop TO SUN_SND.set_stop
+ROUTE vpScript.merStart TO MER_SND.set_start
+ROUTE vpScript.merStop TO MER_SND.set_stop
+ROUTE vpScript.venStart TO VEN_SND.set_start
+ROUTE vpScript.venStop TO VEN_SND.set_stop
+ROUTE vpScript.earStart TO EAR_SND.set_start
+ROUTE vpScript.earStop TO EAR_SND.set_stop
+ROUTE vpScript.pfStart TO PF_SND.set_start
+ROUTE vpScript.pfStop TO PF_SND.set_stop
+ROUTE vpScript.marStart TO MAR_SND.set_start
+ROUTE vpScript.marStop TO MAR_SND.set_stop
+ROUTE vpScript.jupStart TO JUP_SND.set_start
+ROUTE vpScript.jupStop TO JUP_SND.set_stop
+ROUTE vpScript.satStart TO SAT_SND.set_start
+ROUTE vpScript.satStop TO SAT_SND.set_stop
+ROUTE vpScript.uraStart TO URA_SND.set_start
+ROUTE vpScript.uraStop TO URA_SND.set_stop
+ROUTE vpScript.nepStart TO NEP_SND.set_start
+ROUTE vpScript.nepStop TO NEP_SND.set_stop
+ROUTE vpScript.pluStart TO PLU_SND.set_start
+ROUTE vpScript.pluStop TO PLU_SND.set_stop
+
+
+#ROUTE vpScript.pfStop TO d1.SFTime
+#ROUTE vpScript.marStart TO d2.SFTime
+#ROUTE vpScript.marStop TO d3.SFTime
+#ROUTE vpScript.dbgOut1 TO ds1.SFString

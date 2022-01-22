@@ -1,0 +1,178 @@
+<HTML>
+<HEAD>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+total_net = 0;                                  	// total random elements
+total_ie = 0;                                  		// total random elements
+today_date = new Date();                        	// Today's date
+time_now = today_date.getTime();                	// random number
+
+netscape_array('doormat1.html');
+netscape_array('doormat2.html');
+netscape_array('doormat3.html');
+netscape_array('doormat4.html');
+netscape_array('doormat5.html');
+netscape_array('doormat1.html');
+netscape_array('doormat2.html');
+netscape_array('doormat3.html');
+netscape_array('doormat4.html');
+netscape_array('doormat5.html');
+
+// image/link Object Array
+
+function netscape_array (description) {
+        total_net++;
+        sa [total_net] = description;
+}
+
+
+// random number from 1 to total number of array elements
+
+function randnet() {
+RN = parseInt(((time_now - (parseInt(time_now/1000,10) * 1000))/10)/100*total_net + 1,10);
+        return RN;
+}
+
+// CREATE THE image/link OBJECT ARRAY
+    	
+    	
+function sa () {}
+
+function checkBrowser() {
+    if(navigator.appName.indexOf('Netscape') != -1) {
+        if(navigator.appVersion.lastIndexOf('4.') != -1)
+            { var browser = "yes"; }
+        else if(navigator.appVersion.lastIndexOf('3.') != -1) 
+            { var browser = "yes"; } 
+        else { var browser = "no"; }
+    }
+    else { var browser = "no"; }
+    return browser;
+}
+
+function checkOS() {
+    if(navigator.userAgent.indexOf('IRIX') != -1)
+        { var OpSys = "Irix"; }
+    else if((navigator.userAgent.indexOf('Win') != -1) && (navigator.userAgent.indexOf('95') != -1))
+        { var OpSys = "Windows95"; }
+    else if((navigator.userAgent.indexOf('Win') != -1) && (navigator.userAgent.indexOf('NT') != -1))
+        { var OpSys = "WindowsNT"; }
+    else if((navigator.userAgent.indexOf('Win') != -1) && (navigator.userAgent.indexOf('3.1') != -1))
+        { var OpSys = "Windows3.1"; }
+    else { var OpSys = "other"; }
+    return OpSys;
+}	
+		
+
+function checkForCosmo(browser,OpSys) {
+    var present = false;
+            
+    if(browser == "yes") {
+        var numPlugins = navigator.plugins.length;
+        if((OpSys == "Windows95") || (OpSys == "Windows3.1") || (OpSys == "WindowsNT")) {
+            for (i = 0; i < numPlugins; i++) {
+                if(navigator.plugins[i].name.indexOf('Cosmo Player 1') != -1) {
+                    present = true;
+                }
+            }
+        }
+        else if(OpSys == "Irix") {
+            for (i = 0; i < numPlugins; i++) {
+		if(navigator.plugins[i].name.indexOf('cosmoplayer') != -1) {
+                       					
+			 present = true; }
+                	
+                
+            }
+        }
+    }
+	
+    if(present == true) {
+     	location.href = (sa[randnet()]);
+    }    
+    else {
+	location.href = "novrml.html";
+    }    
+    return message;
+}
+// -->
+</SCRIPT>
+
+</HEAD>
+<body bgcolor="#000000" text="#FFFFFF" LINK="#FF2F0C" VLINK="#FF2F0C" ALINK="#FFFF0C">
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var browser = checkBrowser();
+var OpSys = checkOS();
+var message = checkForCosmo(browser,OpSys);
+var mime_type = navigator.mimeTypes["model/vrml"]	// Detects if VRML MIME type is present in browser
+
+if(navigator.appName.indexOf("Netscape") != -1) {
+	checkForCosmo(browser,OpSys);
+		}
+	else {
+	   location.href = "novrml.html";
+	}
+
+// -->
+</SCRIPT>
+
+<NOSCRIPT>
+
+
+<CENTER><P ALIGN="CENTER">
+<IMG SRC="images/cosmologo.gif"
+ SGI_SRC="/usr/people/kipm/Workarea2/ns-docs-webspace/mars/images/cosmologo.gif">
+ </P>
+</CENTER><CENTER>
+<TABLE BORDER="0" WIDTH="500">
+    <TR>
+        <TD><FONT SIZE="5">Welcome to the </FONT><FONT SIZE="5"
+             COLOR="#FF2F0C">Mars Experience</FONT><FONT SIZE="5">
+             brought to you by Cosmo Software. You're minutes away from 
+            the experience of a lifetime. But before you can blastoff, Mission 
+            Control has checked your computer and told us that you've been playing way 
+            too much solitaire, you haven't e-mailed your mother lately, and your browser 
+            either doesn't support JavaScript (no, you don't need to know what that is) 
+            or it is turned off. If your browser supports JavaScript, see below to learn 
+            how to turn it on. If not, press the Netscape button to download 
+            Netscape Communicator Standard Edition, which includes 
+            Cosmo Player. <BR>
+            See you on the <A HREF="doormat2.html">launch pad!</A> </FONT><BR>
+            <FONT SIZE="5"> </FONT></TD>
+    </TR>
+    <TR>
+        <TD ALIGN="CENTER"><BR>
+            <A HREF="http://www.netscape.com/download/"><FONT SIZE="5"><IMG
+             SRC="images/nsdownload.gif" BORDER="0"
+             SGI_SRC="/usr/people/kipm/Workarea2/ns-docs-webspace/mars/images/nsdownload.gif"></FONT></A></TD>
+    </TR>
+    <TR>
+        <TD><BR><BLOCKQUOTE>
+            <FONT SIZE="2">Enable JavaScript in Netscape 3.0 under 
+            <i>Options:Network Preferences:Languages</i>. Enable JavaScript n Netscape 4.0 
+            under <i>Edit:Preferences:Advanced</i>. </FONT></BLOCKQUOTE>
+            </CENTER></TD>
+    </TR>
+</TABLE>
+</CENTER>
+
+
+<BR><BR>
+<CENTER><HR WIDTH="400">
+<FONT SIZE="1" FACE="Helvetica, Arial">
+    <A HREF="http://www.sgi.com/Misc/sgi_info.html" TARGET="_TOP">Copyright &copy;
+                        1997 Silicon Graphics, Inc.</A>
+    All Rights Reserved.
+    <A HREF="http://www.sgi.com/Misc/external.list.html" TARGET="_TOP">Trademark
+    Information</A>
+ </FONT></CENTER>
+<BR><BR>
+
+
+</NOSCRIPT>
+</body>
+</html>
