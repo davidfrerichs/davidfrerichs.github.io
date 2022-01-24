@@ -1,0 +1,28 @@
+body {
+	height: 100%;
+	margin:  0;
+	background-color: #160c45;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #FFFFFF;
+}
+a:link {
+	color: #8888ff;
+}
+a:active {
+	color:  #666600;
+}
+a:visited {
+	color:  #666777;
+}
+.box {
+	display:  flex;
+	flex-flow: column;
+	height: 100%;
+	width: 100%;
+}
+.box .header {
+	flex:  0 1 auto;
+}
+.box .content {
+	flex:  1 1 auto;
+}
