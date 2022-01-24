@@ -27939,8 +27939,8 @@ DEF cof Sound {
     startTime	0
     pitch	1
     description	"coffing it up."
-  }
 
+  }
   intensity	1
   priority	1
   location	2.40757e-06 33.8637 0.260332
@@ -27949,6 +27949,7 @@ DEF cof Sound {
   maxFront	25
   minBack	2.5
   maxBack	25
+  spatialize	FALSE
 }
 DEF wind01 Sound {
   source	DEF Sound1clip_151 AudioClip {
@@ -27966,6 +27967,7 @@ DEF wind01 Sound {
   maxFront	177
   minBack	17.7
   maxBack	177
+  spatialize	FALSE
 }
 DEF wind02 Sound {
   source	DEF Sound1clip_152 AudioClip {
@@ -27984,6 +27986,7 @@ DEF wind02 Sound {
   maxFront	598
   minBack	59.8
   maxBack	598
+  spatialize	FALSE
 }
 
 
