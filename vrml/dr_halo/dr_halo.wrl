@@ -1,0 +1,170 @@
+#VRML V2.0 utf8
+
+
+DEF Viewpoint_1 Viewpoint {
+    position 0 2 10
+    fieldOfView 0.785398
+    description "Viewpoint_1"
+}
+
+DEF MainSwitch Switch
+{
+  whichChoice 0
+  choice [
+
+        DEF Go Transform {
+          translation 0 6 0
+          children [
+            Billboard {
+              axisOfRotation  0 1 0
+              children [
+                Shape {
+                  geometry Box { size 1 1 1 }
+                  appearance Appearance {
+                        material Material { diffuseColor 0.7 0.9 0.7 }
+                  }
+                }
+                DEF Go_TouchSensor TouchSensor {}
+              ]
+            }
+          ]
+        }
+
+#       Inline { url "world01.wrl"}
+#       Inline { url "world02.wrl"}
+        Inline { url "scene_one.wrl"}
+        Inline { url "scene_two.wrl"}
+        Inline { url "scene_three.wrl"}
+        Inline { url "scene_four.wrl"}
+        Inline { url "scene_five.wrl"}
+
+  ]
+}
+
+
+DEF WhichSwitch Script
+{
+    eventIn     SFBool      isActive        # start/stop from each timer
+    eventIn     SFTime      go              # event coming in from Starter
+
+    eventOut    SFInt32     whichChoice     # selects a world
+
+    eventOut    SFTime      activateTimer1  # activates timer
+    eventOut    SFTime      activateTimer2
+    eventOut    SFTime      activateTimer3
+    eventOut    SFTime      activateTimer4
+    eventOut    SFTime      activateTimer5
+
+    field       SFInt32     activeTimer 0   # currently active timer (0=none)
+    field       SFInt32     maxWorlds   5   # total number of worlds
+
+    eventIn     SFTime      timeNow         # comes in from all timers
+    field       SFTime      timeIs 0        # time kept locally
+
+    url   "vrmlscript:
+
+function initialize()
+{
+    //    whichChoice = 1 ;  //test only
+}
+
+function timeNow( timeNow )
+{
+    timeIs = timeNow ;
+}
+
+function activate( whichTimer )
+{
+    // switch a world in the worlds_Switch
+    whichChoice = whichTimer ;
+
+    // activate world's timer
+    // need case for every 'activateTimer' eventout
+        if( whichTimer == 1 )
+            { activateTimer1 = timeIs ; return; }
+        if( whichTimer == 2 )
+            { activateTimer2 = timeIs ; return; }
+        if( whichTimer == 3 )
+            { activateTimer3 = timeIs ; return; }
+        if( whichTimer == 4 )
+            { activateTimer4 = timeIs ; return; }
+        if( whichTimer == 5 )
+            { activateTimer5 = timeIs ; return; }
+}
+
+
+function isActive( isActive )
+{
+    // ignore the 'START' timer event
+        if( isActive == true )
+            { return ; }  // do nothing
+
+    // 'END' timer event - activate next world/timer
+        activeTimer += 1 ;
+    if( activeTimer > maxWorlds )
+        activeTimer = 0 ;
+
+        activate( activeTimer ) ;
+}
+
+
+function go( timeNow )
+{
+    timeIs = timeNow ;
+    isActive( false ) ;
+}
+
+
+
+
+
+    "
+
+}
+
+
+DEF Timer1 TimeSensor {  cycleInterval 3 loop FALSE }
+DEF Timer2 TimeSensor {  cycleInterval 3 loop FALSE }
+DEF Timer3 TimeSensor {  cycleInterval 3 loop FALSE }
+DEF Timer4 TimeSensor {  cycleInterval 3 loop FALSE }
+DEF Timer5 TimeSensor {  cycleInterval 3 loop FALSE }
+
+DEF PosI1 PositionInterpolator
+{
+    key      [ 0, 1 ]
+    keyValue [ 0, 2, 10,   0, -4, 10 ]
+}
+
+DEF PosI2 PositionInterpolator
+{
+    key      [ 0, 0.5, 1 ]
+    keyValue [ 0, 2, 10,   0, 2, 5,  0, 2, 10 ]
+}
+
+
+ROUTE Go_TouchSensor.touchTime TO WhichSwitch.go
+ROUTE WhichSwitch.whichChoice TO MainSwitch.whichChoice
+
+ROUTE Timer1.time TO WhichSwitch.timeNow
+ROUTE Timer2.time TO WhichSwitch.timeNow
+ROUTE Timer3.time TO WhichSwitch.timeNow
+ROUTE Timer4.time TO WhichSwitch.timeNow
+ROUTE Timer5.time TO WhichSwitch.timeNow
+
+ROUTE Timer1.isActive TO WhichSwitch.isActive
+ROUTE Timer2.isActive TO WhichSwitch.isActive
+ROUTE Timer3.isActive TO WhichSwitch.isActive
+ROUTE Timer4.isActive TO WhichSwitch.isActive
+ROUTE Timer5.isActive TO WhichSwitch.isActive
+
+ROUTE Timer1.fraction_changed TO PosI1.set_fraction
+ROUTE Timer2.fraction_changed TO PosI2.set_fraction
+
+ROUTE PosI1.value_changed TO Viewpoint_1.set_position
+ROUTE PosI2.value_changed TO Viewpoint_1.set_position
+
+ROUTE WhichSwitch.activateTimer1  TO  Timer1.set_startTime
+ROUTE WhichSwitch.activateTimer2  TO  Timer2.set_startTime
+ROUTE WhichSwitch.activateTimer3  TO  Timer3.set_startTime
+ROUTE WhichSwitch.activateTimer4  TO  Timer4.set_startTime
+ROUTE WhichSwitch.activateTimer5  TO  Timer5.set_startTime
